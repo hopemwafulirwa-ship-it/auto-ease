@@ -1,0 +1,20 @@
+Analyzing auto_ease...                                          
+
+  error - Undefined name 'goRouterProvider' - lib\main.dart:15:32 - undefined_identifier
+   info - Use 'const' with the constructor to improve performance - lib\src\features\auth\presentation\splash_screen.dart:31:13 - prefer_const_constructors
+   info - Use a 'SizedBox' to add whitespace to a layout - lib\src\features\home\presentation\home_screen.dart:36:39 - sized_box_for_whitespace
+   info - Use 'const' with the constructor to improve performance - lib\src\features\home\presentation\home_screen.dart:38:26 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\src\features\home\presentation\home_screen.dart:38:40 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\src\features\home\presentation\home_screen.dart:46:13 - prefer_const_constructors
+   info - The private field _widgetOptions could be 'final' - lib\src\features\home\presentation\main_scaffold.dart:14:23 - prefer_final_fields
+   info - Use 'const' with the constructor to improve performance - lib\src\features\home\presentation\main_scaffold.dart:15:5 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\src\features\home\presentation\main_scaffold.dart:16:5 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\src\features\home\presentation\main_scaffold.dart:16:19 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\src\features\home\presentation\main_scaffold.dart:17:5 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\src\features\home\presentation\main_scaffold.dart:17:19 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\src\features\home\presentation\main_scaffold.dart:18:5 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\src\features\home\presentation\main_scaffold.dart:18:19 - prefer_const_constructors
+  error - Target of URI hasn't been generated: 'package:auto_ease/src/routing/app_router.g.dart' - lib\src\routing\app_router.dart:8:6 - uri_has_not_been_generated
+  error - Undefined class 'GoRouterRef' - lib\src\routing\app_router.dart:11:19 - undefined_class
+  error - The name 'MyApp' isn't a class - test\widget_test.dart:16:35 - creation_with_non_type
+

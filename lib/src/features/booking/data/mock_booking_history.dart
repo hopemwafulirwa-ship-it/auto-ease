@@ -1,0 +1,52 @@
+import 'package:auto_ease/src/features/booking/domain/booking_history.dart';
+
+final kMockBookingHistory = [
+  BookingHistory(
+    id: 'booking_001',
+    serviceCenterId: 'center_001',
+    serviceCenterName: 'AutoCare Plus',
+    services: ['Oil Change', 'Tire Rotation'],
+    dateTime: DateTime.now().add(const Duration(days: 3)),
+    status: BookingStatus.upcoming,
+    totalPrice: 89.99,
+    notes: 'Please check tire pressure',
+  ),
+  BookingHistory(
+    id: 'booking_002',
+    serviceCenterId: 'center_002',
+    serviceCenterName: 'QuickFix Auto',
+    services: ['Brake Inspection', 'Battery Check'],
+    dateTime: DateTime.now().add(const Duration(days: 7)),
+    status: BookingStatus.upcoming,
+    totalPrice: 129.99,
+  ),
+  BookingHistory(
+    id: 'booking_003',
+    serviceCenterId: 'center_001',
+    serviceCenterName: 'AutoCare Plus',
+    services: ['Oil Change'],
+    dateTime: DateTime.now().subtract(const Duration(days: 30)),
+    status: BookingStatus.completed,
+    totalPrice: 49.99,
+    notes: 'Used synthetic oil',
+  ),
+  BookingHistory(
+    id: 'booking_004',
+    serviceCenterId: 'center_003',
+    serviceCenterName: 'Elite Motors Service',
+    services: ['Tire Service', 'Wheel Alignment'],
+    dateTime: DateTime.now().subtract(const Duration(days: 60)),
+    status: BookingStatus.completed,
+    totalPrice: 159.99,
+  ),
+  BookingHistory(
+    id: 'booking_005',
+    serviceCenterId: 'center_002',
+    serviceCenterName: 'QuickFix Auto',
+    services: ['Air Conditioning Service'],
+    dateTime: DateTime.now().subtract(const Duration(days: 15)),
+    status: BookingStatus.cancelled,
+    totalPrice: 99.99,
+    notes: 'Rescheduled due to emergency',
+  ),
+];

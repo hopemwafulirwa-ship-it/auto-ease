@@ -1,0 +1,20 @@
+Analyzing auto_ease...                                          
+
+   info - Use 'const' with the constructor to improve performance - lib\src\features\auth\presentation\splash_screen.dart:31:13 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\src\features\booking\presentation\service_selection_screen.dart:19:29 - prefer_const_constructors
+   info - Use a 'SizedBox' to add whitespace to a layout - lib\src\features\home\presentation\home_screen.dart:37:39 - sized_box_for_whitespace
+   info - Use 'const' with the constructor to improve performance - lib\src\features\home\presentation\home_screen.dart:39:26 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\src\features\home\presentation\home_screen.dart:39:40 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\src\features\home\presentation\home_screen.dart:47:13 - prefer_const_constructors
+   info - The private field _widgetOptions could be 'final' - lib\src\features\home\presentation\main_scaffold.dart:14:23 - prefer_final_fields
+   info - Use 'const' with the constructor to improve performance - lib\src\features\home\presentation\main_scaffold.dart:15:5 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\src\features\home\presentation\main_scaffold.dart:16:5 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\src\features\home\presentation\main_scaffold.dart:16:19 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\src\features\home\presentation\main_scaffold.dart:17:5 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\src\features\home\presentation\main_scaffold.dart:17:19 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\src\features\home\presentation\main_scaffold.dart:18:5 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\src\features\home\presentation\main_scaffold.dart:18:19 - prefer_const_constructors
+warning - Unused import: 'package:flutter/material.dart' - lib\src\routing\app_router.dart:1:8 - unused_import
+   info - 'AutoDisposeProviderRef' is deprecated and shouldn't be used. will be removed in 3.0.0. Use Ref instead - lib\src\routing\app_router.g.dart:22:23 - deprecated_member_use
+
+16 issues found. (ran in 4.2s)
