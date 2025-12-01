@@ -55,7 +55,7 @@ class SignUpScreen extends StatelessWidget {
                   context.go('/home');
                 },
                 child: const Padding(
-                  padding: const EdgeInsets.all(16.0),
+                  padding: EdgeInsets.all(16.0),
                   child: Text('Sign Up'),
                 ),
               ),

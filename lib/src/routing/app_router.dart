@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:auto_ease/src/features/auth/presentation/splash_screen.dart';
 import 'package:auto_ease/src/features/auth/presentation/login_screen.dart';
+import 'package:auto_ease/src/features/auth/presentation/register_screen.dart';
 import 'package:auto_ease/src/features/home/presentation/main_scaffold.dart';
 import 'package:auto_ease/src/features/booking/presentation/service_selection_screen.dart';
 import 'package:auto_ease/src/features/booking/presentation/date_time_picker_screen.dart';
@@ -10,6 +11,10 @@ import 'package:auto_ease/src/features/booking/presentation/booking_confirmation
 import 'package:auto_ease/src/features/booking/presentation/booking_success_screen.dart';
 import 'package:auto_ease/src/features/chat/presentation/chat_detail_screen.dart';
 import 'package:auto_ease/src/features/chat/domain/chat_room.dart';
+import 'package:auto_ease/src/features/home/presentation/service_finder_screen.dart';
+import 'package:auto_ease/src/features/onboarding/presentation/onboarding_screen.dart';
+import 'package:auto_ease/src/features/tracking/presentation/service_tracking_screen.dart';
+import 'package:auto_ease/src/features/reviews/presentation/review_screen.dart';
 
 part 'app_router.g.dart';
 
@@ -26,6 +31,10 @@ GoRouter goRouter(GoRouterRef ref) {
       GoRoute(
         path: '/login',
         builder: (context, state) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: '/register',
+        builder: (context, state) => const RegisterScreen(),
       ),
       GoRoute(
         path: '/home',
@@ -56,6 +65,22 @@ GoRouter goRouter(GoRouterRef ref) {
           final chatRoom = state.extra as ChatRoom;
           return ChatDetailScreen(chatRoom: chatRoom);
         },
+      ),
+      GoRoute(
+        path: '/service-finder',
+        builder: (context, state) => const ServiceFinderScreen(),
+      ),
+      GoRoute(
+        path: '/onboarding',
+        builder: (context, state) => const OnboardingScreen(),
+      ),
+      GoRoute(
+        path: '/tracking',
+        builder: (context, state) => const ServiceTrackingScreen(),
+      ),
+      GoRoute(
+        path: '/review',
+        builder: (context, state) => const ReviewScreen(),
       ),
     ],
   );
