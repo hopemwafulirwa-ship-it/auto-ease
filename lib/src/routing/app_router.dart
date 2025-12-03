@@ -4,6 +4,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:auto_ease/src/features/auth/presentation/splash_screen.dart';
 import 'package:auto_ease/src/features/auth/presentation/login_screen.dart';
 import 'package:auto_ease/src/features/auth/presentation/register_screen.dart';
+import 'package:auto_ease/src/features/auth/presentation/role_selection_screen.dart';
 import 'package:auto_ease/src/features/home/presentation/main_scaffold.dart';
 import 'package:auto_ease/src/features/booking/presentation/service_selection_screen.dart';
 import 'package:auto_ease/src/features/booking/presentation/date_time_picker_screen.dart';
@@ -15,6 +16,11 @@ import 'package:auto_ease/src/features/home/presentation/service_finder_screen.d
 import 'package:auto_ease/src/features/onboarding/presentation/onboarding_screen.dart';
 import 'package:auto_ease/src/features/tracking/presentation/service_tracking_screen.dart';
 import 'package:auto_ease/src/features/reviews/presentation/review_screen.dart';
+import 'package:auto_ease/src/features/mechanic/presentation/mechanic_home_screen.dart';
+import 'package:auto_ease/src/features/mechanic/presentation/job_requests_screen.dart';
+import 'package:auto_ease/src/features/mechanic/presentation/job_details_screen.dart';
+import 'package:auto_ease/src/features/mechanic/presentation/earnings_screen.dart';
+import 'package:auto_ease/src/features/mechanic/domain/job_request.dart';
 
 part 'app_router.g.dart';
 
@@ -35,6 +41,10 @@ GoRouter goRouter(GoRouterRef ref) {
       GoRoute(
         path: '/register',
         builder: (context, state) => const RegisterScreen(),
+      ),
+      GoRoute(
+        path: '/role-selection',
+        builder: (context, state) => const RoleSelectionScreen(),
       ),
       GoRoute(
         path: '/home',
@@ -81,6 +91,25 @@ GoRouter goRouter(GoRouterRef ref) {
       GoRoute(
         path: '/review',
         builder: (context, state) => const ReviewScreen(),
+      ),
+      GoRoute(
+        path: '/mechanic/home',
+        builder: (context, state) => const MechanicHomeScreen(),
+      ),
+      GoRoute(
+        path: '/mechanic/jobs',
+        builder: (context, state) => const JobRequestsScreen(),
+      ),
+      GoRoute(
+        path: '/mechanic/job/:id',
+        builder: (context, state) {
+          final job = state.extra as JobRequest;
+          return JobDetailsScreen(job: job);
+        },
+      ),
+      GoRoute(
+        path: '/mechanic/earnings',
+        builder: (context, state) => const EarningsScreen(),
       ),
     ],
   );

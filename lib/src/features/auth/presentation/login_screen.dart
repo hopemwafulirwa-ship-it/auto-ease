@@ -140,7 +140,8 @@ class LoginScreen extends StatelessWidget {
                   const SizedBox(height: 32),
                   FilledButton(
                     onPressed: () {
-                      context.go('/home');
+                      // Mock login and navigate to role selection
+                      context.go('/role-selection');
                     },
                     child: const Text('Login'),
                   ),

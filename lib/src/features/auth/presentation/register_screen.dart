@@ -130,8 +130,8 @@ class RegisterScreen extends StatelessWidget {
                   const SizedBox(height: 32),
                   FilledButton(
                     onPressed: () {
-                      // Mock registration and navigate to home
-                      context.go('/home');
+                      // Mock registration and navigate to role selection
+                      context.go('/role-selection');
                     },
                     child: const Text('Sign Up'),
                   ),
