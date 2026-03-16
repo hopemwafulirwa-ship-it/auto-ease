@@ -33,6 +33,7 @@ dependencies:
 
   # Utilities
   intl: ^0.18.0
+  shared_preferences: ^2.5.3
 
 dev_dependencies:
   flutter_test:
@@ -43,6 +44,8 @@ dev_dependencies:
   custom_lint: ^0.5.7
   riverpod_lint: ^2.3.7
   flutter_launcher_icons: ^0.13.1
+  bdd_widget_test: ^1.7.6
+  network_image_mock: ^2.1.1
 
 flutter:
   uses-material-design: true

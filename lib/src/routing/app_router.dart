@@ -5,6 +5,7 @@ import 'package:auto_ease/src/features/auth/presentation/splash_screen.dart';
 import 'package:auto_ease/src/features/auth/presentation/login_screen.dart';
 import 'package:auto_ease/src/features/auth/presentation/register_screen.dart';
 import 'package:auto_ease/src/features/auth/presentation/role_selection_screen.dart';
+import 'package:auto_ease/src/features/auth/presentation/forgot_password_screen.dart';
 import 'package:auto_ease/src/features/home/presentation/main_scaffold.dart';
 import 'package:auto_ease/src/features/booking/presentation/service_selection_screen.dart';
 import 'package:auto_ease/src/features/booking/presentation/date_time_picker_screen.dart';
@@ -21,6 +22,7 @@ import 'package:auto_ease/src/features/mechanic/presentation/job_requests_screen
 import 'package:auto_ease/src/features/mechanic/presentation/job_details_screen.dart';
 import 'package:auto_ease/src/features/mechanic/presentation/earnings_screen.dart';
 import 'package:auto_ease/src/features/mechanic/domain/job_request.dart';
+import 'package:auto_ease/src/features/profile/presentation/edit_profile_screen.dart';
 
 part 'app_router.g.dart';
 
@@ -37,6 +39,10 @@ GoRouter goRouter(GoRouterRef ref) {
       GoRoute(
         path: '/login',
         builder: (context, state) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: '/forgot-password',
+        builder: (context, state) => const ForgotPasswordScreen(),
       ),
       GoRoute(
         path: '/register',
@@ -110,6 +116,10 @@ GoRouter goRouter(GoRouterRef ref) {
       GoRoute(
         path: '/mechanic/earnings',
         builder: (context, state) => const EarningsScreen(),
+      ),
+      GoRoute(
+        path: '/profile/edit',
+        builder: (context, state) => const EditProfileScreen(),
       ),
     ],
   );

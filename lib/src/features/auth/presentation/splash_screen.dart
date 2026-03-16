@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:auto_ease/src/common/services/local_storage_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -38,14 +40,38 @@ class _SplashScreenState extends State<SplashScreen>
 
     _controller.forward();
 
-    // Simulate loading or auth check
-    Future.delayed(const Duration(seconds: 3), () {
-      // TODO: Check if first time user, then go to /onboarding
-      // For now, we'll just go to /onboarding to demonstrate the flow
-      if (mounted) {
-        context.go('/onboarding');
+    _handleNavigation();
+  }
+
+  Future<void> _handleNavigation() async {
+    // Wait for animation and minimum splash duration
+    await Future.delayed(const Duration(seconds: 3));
+
+    if (!mounted) return;
+
+    try {
+      final localStorage = await LocalStorageService.init();
+      final isFirstTime = localStorage.getIsFirstTime();
+
+      if (!mounted) return;
+
+      if (isFirstTime) {
+        await localStorage.setFirstTime(false);
+        if (mounted) context.go('/onboarding');
+      } else {
+        final user = FirebaseAuth.instance.currentUser;
+        if (mounted) {
+          if (user != null) {
+            context.go('/home');
+          } else {
+            context.go('/login');
+          }
+        }
       }
-    });
+    } catch (e) {
+      // Fallback in case of error
+      if (mounted) context.go('/login');
+    }
   }
 
   @override

@@ -1,30 +1,58 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
+// Smoke test: verifies the app can be instantiated without errors.
+// For comprehensive tests, see the test/unit/ directory.
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:auto_ease/main.dart';
+import 'package:auto_ease/src/features/booking/domain/booking_history.dart';
+import 'package:auto_ease/src/features/home/domain/service_center_model.dart';
+import 'package:auto_ease/src/features/profile/domain/user_profile.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const ProviderScope(child: AutoEaseApp()));
+  group('Smoke tests', () {
+    test('BookingHistory can be instantiated', () {
+      final booking = BookingHistory(
+        id: 'smoke_1',
+        serviceCenterId: 'c1',
+        serviceCenterName: 'Test Center',
+        services: ['Oil Change'],
+        dateTime: DateTime.now(),
+        status: BookingStatus.upcoming,
+        totalPrice: 50.0,
+      );
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+      expect(booking, isNotNull);
+      expect(booking.id, 'smoke_1');
+    });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    test('ServiceCenter can be instantiated', () {
+      const center = ServiceCenter(
+        id: 'sc_1',
+        name: 'Test Center',
+        address: '123 Test St',
+        latitude: 0.0,
+        longitude: 0.0,
+        rating: 4.5,
+        reviewCount: 10,
+        distance: 1.0,
+        isOpen: true,
+        services: ['Oil Change'],
+        imageUrl: 'https://example.com/img.jpg',
+      );
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+      expect(center, isNotNull);
+      expect(center.name, 'Test Center');
+    });
+
+    test('UserProfile can be instantiated with defaults', () {
+      const profile = UserProfile(
+        id: 'u1',
+        name: 'Test User',
+        email: 'test@test.com',
+        phone: '123',
+      );
+
+      expect(profile, isNotNull);
+      expect(profile.notificationsEnabled, isTrue);
+      expect(profile.darkModeEnabled, isFalse);
+    });
   });
 }

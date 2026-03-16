@@ -25,6 +25,11 @@
             "request": "launch",
             "type": "dart",
             "flutterMode": "release"
+        },
+        {
+            "name": "auto_ease (Flutter SM A145P)",
+            "request": "launch",
+            "type": "dart"
         }
     ]
 }
