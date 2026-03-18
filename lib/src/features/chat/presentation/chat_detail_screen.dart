@@ -1,29 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:auto_ease/src/common/widgets/gradient_background.dart';
 import 'package:auto_ease/src/common/utils/animation_extensions.dart';
 import 'package:auto_ease/src/features/chat/data/mock_chat_data.dart';
-import 'package:auto_ease/src/features/chat/domain/chat_room.dart';
+import 'package:auto_ease/src/features/chat/data/chat_repository.dart';
 import 'package:auto_ease/src/features/chat/domain/message.dart';
 import 'package:intl/intl.dart';
 
-class ChatDetailScreen extends StatefulWidget {
-  final ChatRoom chatRoom;
+class ChatDetailScreen extends ConsumerStatefulWidget {
+  final String chatId;
 
-  const ChatDetailScreen({super.key, required this.chatRoom});
+  const ChatDetailScreen({super.key, required this.chatId});
 
   @override
-  State<ChatDetailScreen> createState() => _ChatDetailScreenState();
+  ConsumerState<ChatDetailScreen> createState() => _ChatDetailScreenState();
 }
 
-class _ChatDetailScreenState extends State<ChatDetailScreen> {
+class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  late List<Message> _messages;
+  List<Message> _messages = [];
 
   @override
   void initState() {
     super.initState();
-    _messages = kMockMessages[widget.chatRoom.id] ?? [];
+    _messages = List.from(kMockMessages[widget.chatId] ?? []);
   }
 
   @override
@@ -65,82 +66,96 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final chatRoomValue = ref.watch(chatRoomProvider(widget.chatId));
 
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        title: Row(
-          children: [
-            CircleAvatar(
-              radius: 16,
-              backgroundImage:
-                  NetworkImage(widget.chatRoom.participantAvatarUrl),
-            ),
-            const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return chatRoomValue.when(
+      data: (chatRoom) {
+        if (chatRoom == null) {
+          return const Scaffold(body: Center(child: Text('Chat not found')));
+        }
+        return Scaffold(
+          extendBodyBehindAppBar: true,
+          appBar: AppBar(
+            title: Row(
               children: [
-                Text(
-                  widget.chatRoom.participantName,
-                  style: theme.textTheme.titleMedium,
+                CircleAvatar(
+                  radius: 16,
+                  backgroundImage: NetworkImage(chatRoom.participantAvatarUrl),
                 ),
-                if (widget.chatRoom.isOnline)
-                  Text(
-                    'Online',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: Colors.green,
-                      fontSize: 12,
+                const SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      chatRoom.participantName,
+                      style: theme.textTheme.titleMedium,
                     ),
-                  ),
+                    if (chatRoom.isOnline)
+                      Text(
+                        'Online',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: Colors.green,
+                          fontSize: 12,
+                        ),
+                      ),
+                  ],
+                ),
               ],
             ),
-          ],
-        ),
-        backgroundColor: colorScheme.surface.withValues(alpha: 0.8),
-        elevation: 0,
-      ),
-      body: GradientBackground.subtle(
-        colorScheme: colorScheme,
-        child: SafeArea(
-          child: Column(
-            children: [
-              Expanded(
-                child: ListView.builder(
-                  controller: _scrollController,
-                  padding: const EdgeInsets.all(16),
-                  itemCount: _messages.length,
-                  itemBuilder: (context, index) {
-                    final message = _messages[index];
-                    final showTime = index == 0 ||
-                        message.timestamp
-                                .difference(_messages[index - 1].timestamp)
-                                .inMinutes >
-                            15;
-
-                    return Column(
-                      children: [
-                        if (showTime)
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            child: Text(
-                              DateFormat.jm().format(message.timestamp),
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ),
-                        _MessageBubble(message: message).fadeInSlideUp(
-                          delay: Duration(milliseconds: index * 50),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-              ),
-              _buildInputArea(theme, colorScheme),
-            ],
+            backgroundColor: colorScheme.surface.withValues(alpha: 0.8),
+            elevation: 0,
           ),
-        ),
+          body: GradientBackground.subtle(
+            colorScheme: colorScheme,
+            child: SafeArea(
+              child: Column(
+                children: [
+                  Expanded(
+                    child: ListView.builder(
+                      controller: _scrollController,
+                      padding: const EdgeInsets.all(16),
+                      itemCount: _messages.length,
+                      itemBuilder: (context, index) {
+                        final message = _messages[index];
+                        final showTime = index == 0 ||
+                            message.timestamp
+                                    .difference(_messages[index - 1].timestamp)
+                                    .inMinutes >
+                                15;
+
+                        return Column(
+                          children: [
+                            if (showTime)
+                              Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 16),
+                                child: Text(
+                                  DateFormat.jm().format(message.timestamp),
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ),
+                            _MessageBubble(message: message).fadeInSlideUp(
+                              delay: Duration(milliseconds: index * 50),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+                  _buildInputArea(theme, colorScheme),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+      loading: () => const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      ),
+      error: (e, st) => Scaffold(
+        body: Center(child: Text('Error: $e')),
       ),
     );
   }

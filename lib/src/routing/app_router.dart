@@ -1,6 +1,9 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'dart:async';
+
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:auto_ease/src/features/auth/data/auth_repository.dart';
 import 'package:auto_ease/src/features/auth/presentation/splash_screen.dart';
 import 'package:auto_ease/src/features/auth/presentation/login_screen.dart';
 import 'package:auto_ease/src/features/auth/presentation/register_screen.dart';
@@ -12,7 +15,6 @@ import 'package:auto_ease/src/features/booking/presentation/date_time_picker_scr
 import 'package:auto_ease/src/features/booking/presentation/booking_confirmation_screen.dart';
 import 'package:auto_ease/src/features/booking/presentation/booking_success_screen.dart';
 import 'package:auto_ease/src/features/chat/presentation/chat_detail_screen.dart';
-import 'package:auto_ease/src/features/chat/domain/chat_room.dart';
 import 'package:auto_ease/src/features/home/presentation/service_finder_screen.dart';
 import 'package:auto_ease/src/features/onboarding/presentation/onboarding_screen.dart';
 import 'package:auto_ease/src/features/tracking/presentation/service_tracking_screen.dart';
@@ -21,16 +23,55 @@ import 'package:auto_ease/src/features/mechanic/presentation/mechanic_home_scree
 import 'package:auto_ease/src/features/mechanic/presentation/job_requests_screen.dart';
 import 'package:auto_ease/src/features/mechanic/presentation/job_details_screen.dart';
 import 'package:auto_ease/src/features/mechanic/presentation/earnings_screen.dart';
-import 'package:auto_ease/src/features/mechanic/domain/job_request.dart';
 import 'package:auto_ease/src/features/profile/presentation/edit_profile_screen.dart';
 
 part 'app_router.g.dart';
 
+class GoRouterRefreshStream extends ChangeNotifier {
+  GoRouterRefreshStream(Stream<dynamic> stream) {
+    notifyListeners();
+    _subscription = stream.asBroadcastStream().listen(
+          (dynamic _) => notifyListeners(),
+        );
+  }
+
+  late final StreamSubscription<dynamic> _subscription;
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
+  }
+}
+
 @riverpod
 GoRouter goRouter(GoRouterRef ref) {
+  final authRepository = ref.watch(authRepositoryProvider);
   return GoRouter(
     initialLocation: '/',
     debugLogDiagnostics: true,
+    refreshListenable: GoRouterRefreshStream(authRepository.authStateChanges()),
+    redirect: (context, state) {
+      final isLoggedIn = authRepository.currentUser != null;
+      final isLoggingIn = state.matchedLocation == '/login' ||
+          state.matchedLocation == '/register' ||
+          state.matchedLocation == '/forgot-password';
+
+      if (!isLoggedIn) {
+        if (isLoggingIn ||
+            state.matchedLocation == '/' ||
+            state.matchedLocation == '/onboarding') {
+          return null;
+        }
+        return '/login';
+      }
+
+      if (isLoggingIn) {
+        return '/home';
+      }
+
+      return null;
+    },
     routes: [
       GoRoute(
         path: '/',
@@ -78,8 +119,8 @@ GoRouter goRouter(GoRouterRef ref) {
       GoRoute(
         path: '/chat/:id',
         builder: (context, state) {
-          final chatRoom = state.extra as ChatRoom;
-          return ChatDetailScreen(chatRoom: chatRoom);
+          final id = state.pathParameters['id']!;
+          return ChatDetailScreen(chatId: id);
         },
       ),
       GoRoute(
@@ -109,8 +150,8 @@ GoRouter goRouter(GoRouterRef ref) {
       GoRoute(
         path: '/mechanic/job/:id',
         builder: (context, state) {
-          final job = state.extra as JobRequest;
-          return JobDetailsScreen(job: job);
+          final id = state.pathParameters['id']!;
+          return JobDetailsScreen(jobId: id);
         },
       ),
       GoRoute(

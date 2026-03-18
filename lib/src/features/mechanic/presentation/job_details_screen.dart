@@ -1,245 +1,261 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:auto_ease/src/common/widgets/gradient_background.dart';
 import 'package:auto_ease/src/common/widgets/glass_card.dart';
+import 'package:auto_ease/src/features/mechanic/data/mechanic_repository.dart';
 import 'package:auto_ease/src/features/mechanic/domain/job_request.dart';
 import 'package:intl/intl.dart';
 
-class JobDetailsScreen extends StatelessWidget {
-  final JobRequest job;
+class JobDetailsScreen extends ConsumerWidget {
+  final String jobId;
 
-  const JobDetailsScreen({super.key, required this.job});
+  const JobDetailsScreen({super.key, required this.jobId});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final jobValue = ref.watch(jobRequestProvider(jobId));
 
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        title: const Text('Job Details'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
-      body: GradientBackground.subtle(
-        colorScheme: colorScheme,
-        child: SafeArea(
-          child: ListView(
-            padding: const EdgeInsets.all(24),
-            children: [
-              // Customer Info
-              GlassCard(
-                padding: const EdgeInsets.all(20),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 36,
-                      backgroundImage: NetworkImage(job.customerAvatar),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            job.customerName,
-                            style: theme.textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            job.vehicleInfo,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () {},
-                      icon: const Icon(Icons.phone),
-                      style: IconButton.styleFrom(
-                        backgroundColor: colorScheme.primaryContainer,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Job Status
-              GlassCard(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Status',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        color:
-                            _getStatusColor(job.status).withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            _getStatusIcon(job.status),
-                            color: _getStatusColor(job.status),
-                            size: 20,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            _getStatusText(job.status),
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: _getStatusColor(job.status),
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Service Details
-              GlassCard(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Services Requested',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    ...job.services.map((service) => Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: Row(
+    return jobValue.when(
+      data: (job) {
+        if (job == null) {
+          return const Scaffold(body: Center(child: Text('Job not found')));
+        }
+        return Scaffold(
+          extendBodyBehindAppBar: true,
+          appBar: AppBar(
+            title: const Text('Job Details'),
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+          ),
+          body: GradientBackground.subtle(
+            colorScheme: colorScheme,
+            child: SafeArea(
+              child: ListView(
+                padding: const EdgeInsets.all(24),
+                children: [
+                  // Customer Info
+                  GlassCard(
+                    padding: const EdgeInsets.all(20),
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 36,
+                          backgroundImage: NetworkImage(job.customerAvatar),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Icon(
-                                Icons.check_circle_outline,
-                                color: colorScheme.primary,
-                                size: 20,
-                              ),
-                              const SizedBox(width: 12),
                               Text(
-                                service,
-                                style: theme.textTheme.bodyMedium,
+                                job.customerName,
+                                style: theme.textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                job.vehicleInfo,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
                               ),
                             ],
                           ),
-                        )),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Location & Time
-              GlassCard(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Location & Time',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                        ),
+                        IconButton(
+                          onPressed: () {},
+                          icon: const Icon(Icons.phone),
+                          style: IconButton.styleFrom(
+                            backgroundColor: colorScheme.primaryContainer,
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 16),
-                    _buildInfoRow(
-                      context,
-                      icon: Icons.location_on_outlined,
-                      label: job.address ?? job.location,
-                    ),
-                    const SizedBox(height: 12),
-                    _buildInfoRow(
-                      context,
-                      icon: Icons.access_time,
-                      label: DateFormat('MMM dd, yyyy • hh:mm a')
-                          .format(job.requestedDateTime),
-                    ),
-                    const SizedBox(height: 12),
-                    _buildInfoRow(
-                      context,
-                      icon: Icons.straighten_outlined,
-                      label: '${job.distance.toStringAsFixed(1)} km away',
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Earnings
-              GlassCard(
-                padding: const EdgeInsets.all(20),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Estimated Earnings',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      '\$${job.estimatedEarnings.toStringAsFixed(2)}',
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.green,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 32),
-
-              // Action Buttons
-              if (job.status == JobStatus.accepted)
-                FilledButton.icon(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Service started!')),
-                    );
-                  },
-                  icon: const Icon(Icons.play_arrow),
-                  label: const Text('Start Service'),
-                  style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
-                ),
-              if (job.status == JobStatus.inProgress)
-                FilledButton.icon(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                          content: Text('Service marked as complete!')),
-                    );
-                  },
-                  icon: const Icon(Icons.check_circle),
-                  label: const Text('Mark as Complete'),
-                  style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  const SizedBox(height: 20),
+
+                  // Job Status
+                  GlassCard(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Status',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: _getStatusColor(job.status)
+                                .withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                _getStatusIcon(job.status),
+                                color: _getStatusColor(job.status),
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                _getStatusText(job.status),
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: _getStatusColor(job.status),
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-            ],
+                  const SizedBox(height: 20),
+
+                  // Service Details
+                  GlassCard(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Services Requested',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        ...job.services.map((service) => Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.check_circle_outline,
+                                    color: colorScheme.primary,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Text(
+                                    service,
+                                    style: theme.textTheme.bodyMedium,
+                                  ),
+                                ],
+                              ),
+                            )),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Location & Time
+                  GlassCard(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Location & Time',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        _buildInfoRow(
+                          context,
+                          icon: Icons.location_on_outlined,
+                          label: job.address ?? job.location,
+                        ),
+                        const SizedBox(height: 12),
+                        _buildInfoRow(
+                          context,
+                          icon: Icons.access_time,
+                          label: DateFormat('MMM dd, yyyy • hh:mm a')
+                              .format(job.requestedDateTime),
+                        ),
+                        const SizedBox(height: 12),
+                        _buildInfoRow(
+                          context,
+                          icon: Icons.straighten_outlined,
+                          label: '${job.distance.toStringAsFixed(1)} km away',
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Earnings
+                  GlassCard(
+                    padding: const EdgeInsets.all(20),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Estimated Earnings',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          '\$${job.estimatedEarnings.toStringAsFixed(2)}',
+                          style: theme.textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Action Buttons
+                  if (job.status == JobStatus.accepted)
+                    FilledButton.icon(
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Service started!')),
+                        );
+                      },
+                      icon: const Icon(Icons.play_arrow),
+                      label: const Text('Start Service'),
+                      style: FilledButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                    ),
+                  if (job.status == JobStatus.inProgress)
+                    FilledButton.icon(
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text('Service marked as complete!')),
+                        );
+                      },
+                      icon: const Icon(Icons.check_circle),
+                      label: const Text('Mark as Complete'),
+                      style: FilledButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                    ),
+                ],
+              ),
+            ),
           ),
-        ),
+        );
+      },
+      loading: () => const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      ),
+      error: (e, st) => Scaffold(
+        body: Center(child: Text('Error: $e')),
       ),
     );
   }
