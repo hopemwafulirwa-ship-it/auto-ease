@@ -6,7 +6,7 @@ part of 'chat_repository.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$chatRepositoryHash() => r'92dfea17828d8f30908d84dd2bb1cbb926d09880';
+String _$chatRepositoryHash() => r'c4371c921b617eb8ae8ca96674f44793770e9dff';
 
 /// See also [chatRepository].
 @ProviderFor(chatRepository)
@@ -20,8 +20,10 @@ final chatRepositoryProvider = Provider<ChatRepository>.internal(
   allTransitiveDependencies: null,
 );
 
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
 typedef ChatRepositoryRef = ProviderRef<ChatRepository>;
-String _$chatRoomHash() => r'ecc0356e960d163e0f1a2a9f4ed033cf2f255f0f';
+String _$chatMessagesHash() => r'd7efca533d2d4b1d13fcad88f8e13fd3b17561de';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -43,6 +45,153 @@ class _SystemHash {
     return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
   }
 }
+
+/// See also [chatMessages].
+@ProviderFor(chatMessages)
+const chatMessagesProvider = ChatMessagesFamily();
+
+/// See also [chatMessages].
+class ChatMessagesFamily extends Family<AsyncValue<List<Message>>> {
+  /// See also [chatMessages].
+  const ChatMessagesFamily();
+
+  /// See also [chatMessages].
+  ChatMessagesProvider call(
+    String roomId,
+  ) {
+    return ChatMessagesProvider(
+      roomId,
+    );
+  }
+
+  @override
+  ChatMessagesProvider getProviderOverride(
+    covariant ChatMessagesProvider provider,
+  ) {
+    return call(
+      provider.roomId,
+    );
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'chatMessagesProvider';
+}
+
+/// See also [chatMessages].
+class ChatMessagesProvider extends AutoDisposeStreamProvider<List<Message>> {
+  /// See also [chatMessages].
+  ChatMessagesProvider(
+    String roomId,
+  ) : this._internal(
+          (ref) => chatMessages(
+            ref as ChatMessagesRef,
+            roomId,
+          ),
+          from: chatMessagesProvider,
+          name: r'chatMessagesProvider',
+          debugGetCreateSourceHash:
+              const bool.fromEnvironment('dart.vm.product')
+                  ? null
+                  : _$chatMessagesHash,
+          dependencies: ChatMessagesFamily._dependencies,
+          allTransitiveDependencies:
+              ChatMessagesFamily._allTransitiveDependencies,
+          roomId: roomId,
+        );
+
+  ChatMessagesProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.roomId,
+  }) : super.internal();
+
+  final String roomId;
+
+  @override
+  Override overrideWith(
+    Stream<List<Message>> Function(ChatMessagesRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: ChatMessagesProvider._internal(
+        (ref) => create(ref as ChatMessagesRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        roomId: roomId,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeStreamProviderElement<List<Message>> createElement() {
+    return _ChatMessagesProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is ChatMessagesProvider && other.roomId == roomId;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, roomId.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin ChatMessagesRef on AutoDisposeStreamProviderRef<List<Message>> {
+  /// The parameter `roomId` of this provider.
+  String get roomId;
+}
+
+class _ChatMessagesProviderElement
+    extends AutoDisposeStreamProviderElement<List<Message>>
+    with ChatMessagesRef {
+  _ChatMessagesProviderElement(super.provider);
+
+  @override
+  String get roomId => (origin as ChatMessagesProvider).roomId;
+}
+
+String _$chatRoomsHash() => r'e72eaadd1bef732e60f9cd4dedb4c1dd220ead87';
+
+/// See also [chatRooms].
+@ProviderFor(chatRooms)
+final chatRoomsProvider = AutoDisposeStreamProvider<List<ChatRoom>>.internal(
+  chatRooms,
+  name: r'chatRoomsProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product') ? null : _$chatRoomsHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef ChatRoomsRef = AutoDisposeStreamProviderRef<List<ChatRoom>>;
+String _$chatRoomHash() => r'4b427072f256ee0d1077db83bad9a3e14d4b1cec';
 
 /// See also [chatRoom].
 @ProviderFor(chatRoom)
@@ -156,6 +305,8 @@ class ChatRoomProvider extends AutoDisposeStreamProvider<ChatRoom?> {
   }
 }
 
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
 mixin ChatRoomRef on AutoDisposeStreamProviderRef<ChatRoom?> {
   /// The parameter `id` of this provider.
   String get id;
@@ -168,133 +319,5 @@ class _ChatRoomProviderElement
   @override
   String get id => (origin as ChatRoomProvider).id;
 }
-
-String _$chatRoomFutureHash() => r'19ed20b4b559f5dd0b1e1f33818223c33e0b189d';
-
-/// See also [chatRoomFuture].
-@ProviderFor(chatRoomFuture)
-const chatRoomFutureProvider = ChatRoomFutureFamily();
-
-/// See also [chatRoomFuture].
-class ChatRoomFutureFamily extends Family<AsyncValue<ChatRoom?>> {
-  /// See also [chatRoomFuture].
-  const ChatRoomFutureFamily();
-
-  /// See also [chatRoomFuture].
-  ChatRoomFutureProvider call(
-    String id,
-  ) {
-    return ChatRoomFutureProvider(
-      id,
-    );
-  }
-
-  @override
-  ChatRoomFutureProvider getProviderOverride(
-    covariant ChatRoomFutureProvider provider,
-  ) {
-    return call(
-      provider.id,
-    );
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'chatRoomFutureProvider';
-}
-
-/// See also [chatRoomFuture].
-class ChatRoomFutureProvider extends AutoDisposeFutureProvider<ChatRoom?> {
-  /// See also [chatRoomFuture].
-  ChatRoomFutureProvider(
-    String id,
-  ) : this._internal(
-          (ref) => chatRoomFuture(
-            ref as ChatRoomFutureRef,
-            id,
-          ),
-          from: chatRoomFutureProvider,
-          name: r'chatRoomFutureProvider',
-          debugGetCreateSourceHash:
-              const bool.fromEnvironment('dart.vm.product')
-                  ? null
-                  : _$chatRoomFutureHash,
-          dependencies: ChatRoomFutureFamily._dependencies,
-          allTransitiveDependencies:
-              ChatRoomFutureFamily._allTransitiveDependencies,
-          id: id,
-        );
-
-  ChatRoomFutureProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.id,
-  }) : super.internal();
-
-  final String id;
-
-  @override
-  Override overrideWith(
-    FutureOr<ChatRoom?> Function(ChatRoomFutureRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: ChatRoomFutureProvider._internal(
-        (ref) => create(ref as ChatRoomFutureRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        id: id,
-      ),
-    );
-  }
-
-  @override
-  AutoDisposeFutureProviderElement<ChatRoom?> createElement() {
-    return _ChatRoomFutureProviderElement(this);
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return other is ChatRoomFutureProvider && other.id == id;
-  }
-
-  @override
-  int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, id.hashCode);
-
-    return _SystemHash.finish(hash);
-  }
-}
-
-mixin ChatRoomFutureRef on AutoDisposeFutureProviderRef<ChatRoom?> {
-  /// The parameter `id` of this provider.
-  String get id;
-}
-
-class _ChatRoomFutureProviderElement
-    extends AutoDisposeFutureProviderElement<ChatRoom?> with ChatRoomFutureRef {
-  _ChatRoomFutureProviderElement(super.provider);
-
-  @override
-  String get id => (origin as ChatRoomFutureProvider).id;
-}
 // ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member
+// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

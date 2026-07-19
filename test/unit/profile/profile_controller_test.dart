@@ -20,10 +20,10 @@ void main() {
     test('initial state loads mock user profile', () {
       final profile = container.read(profileControllerProvider);
 
-      expect(profile.id, kMockUserProfile.id);
-      expect(profile.name, kMockUserProfile.name);
-      expect(profile.email, kMockUserProfile.email);
-      expect(profile.phone, kMockUserProfile.phone);
+      expect(profile.requireValue.id, kMockUserProfile.id);
+      expect(profile.requireValue.name, kMockUserProfile.name);
+      expect(profile.requireValue.email, kMockUserProfile.email);
+      expect(profile.requireValue.phone, kMockUserProfile.phone);
     });
 
     test('updateProfile updates name', () {
@@ -33,10 +33,10 @@ void main() {
 
       final profile = container.read(profileControllerProvider);
 
-      expect(profile.name, 'Jane Updated');
+      expect(profile.requireValue.name, 'Jane Updated');
       // Other fields unchanged
-      expect(profile.email, kMockUserProfile.email);
-      expect(profile.phone, kMockUserProfile.phone);
+      expect(profile.requireValue.email, kMockUserProfile.email);
+      expect(profile.requireValue.phone, kMockUserProfile.phone);
     });
 
     test('updateProfile updates email', () {
@@ -45,7 +45,7 @@ void main() {
           .updateProfile(email: 'new@email.com');
 
       final profile = container.read(profileControllerProvider);
-      expect(profile.email, 'new@email.com');
+      expect(profile.requireValue.email, 'new@email.com');
     });
 
     test('updateProfile updates phone', () {
@@ -54,7 +54,7 @@ void main() {
           .updateProfile(phone: '+1 555-999-0000');
 
       final profile = container.read(profileControllerProvider);
-      expect(profile.phone, '+1 555-999-0000');
+      expect(profile.requireValue.phone, '+1 555-999-0000');
     });
 
     test('updateProfile updates multiple fields at once', () {
@@ -66,9 +66,9 @@ void main() {
 
       final profile = container.read(profileControllerProvider);
 
-      expect(profile.name, 'New Name');
-      expect(profile.email, 'new@email.com');
-      expect(profile.phone, '+1 999-000-1111');
+      expect(profile.requireValue.name, 'New Name');
+      expect(profile.requireValue.email, 'new@email.com');
+      expect(profile.requireValue.phone, '+1 999-000-1111');
     });
 
     test('toggleNotifications enables notifications', () {
@@ -81,7 +81,7 @@ void main() {
           .toggleNotifications(true);
 
       final profile = container.read(profileControllerProvider);
-      expect(profile.notificationsEnabled, isTrue);
+      expect(profile.requireValue.notificationsEnabled, isTrue);
     });
 
     test('toggleNotifications disables notifications', () {
@@ -90,14 +90,14 @@ void main() {
           .toggleNotifications(false);
 
       final profile = container.read(profileControllerProvider);
-      expect(profile.notificationsEnabled, isFalse);
+      expect(profile.requireValue.notificationsEnabled, isFalse);
     });
 
     test('toggleDarkMode enables dark mode', () {
       container.read(profileControllerProvider.notifier).toggleDarkMode(true);
 
       final profile = container.read(profileControllerProvider);
-      expect(profile.darkModeEnabled, isTrue);
+      expect(profile.requireValue.darkModeEnabled, isTrue);
     });
 
     test('toggleDarkMode disables dark mode', () {
@@ -105,7 +105,7 @@ void main() {
       container.read(profileControllerProvider.notifier).toggleDarkMode(false);
 
       final profile = container.read(profileControllerProvider);
-      expect(profile.darkModeEnabled, isFalse);
+      expect(profile.requireValue.darkModeEnabled, isFalse);
     });
 
     test('logout resets profile to default', () {
@@ -121,9 +121,9 @@ void main() {
 
       final profile = container.read(profileControllerProvider);
 
-      expect(profile.name, kMockUserProfile.name);
-      expect(profile.email, kMockUserProfile.email);
-      expect(profile.darkModeEnabled, kMockUserProfile.darkModeEnabled);
+      expect(profile.requireValue.name, kMockUserProfile.name);
+      expect(profile.requireValue.email, kMockUserProfile.email);
+      expect(profile.requireValue.darkModeEnabled, kMockUserProfile.darkModeEnabled);
     });
   });
 }

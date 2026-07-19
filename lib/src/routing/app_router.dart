@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:auto_ease/src/features/auth/data/auth_repository.dart';
 import 'package:auto_ease/src/features/auth/presentation/splash_screen.dart';
@@ -45,7 +46,7 @@ class GoRouterRefreshStream extends ChangeNotifier {
 }
 
 @riverpod
-GoRouter goRouter(GoRouterRef ref) {
+GoRouter goRouter(Ref ref) {
   final authRepository = ref.watch(authRepositoryProvider);
   return GoRouter(
     initialLocation: '/',

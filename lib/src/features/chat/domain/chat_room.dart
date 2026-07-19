@@ -16,4 +16,19 @@ class ChatRoom {
     this.unreadCount = 0,
     this.isOnline = false,
   });
+
+  factory ChatRoom.fromJson(Map<String, dynamic> json, Message lastMessage, String currentUserId) {
+    // Determine which participant is the "other" person
+    final isParticipant1 = json['participant1_id'] == currentUserId;
+    final otherParticipant = isParticipant1 ? json['participant2'] : json['participant1'];
+    
+    return ChatRoom(
+      id: json['id'] as String,
+      participantName: otherParticipant?['name'] as String? ?? 'Unknown',
+      participantAvatarUrl: otherParticipant?['avatar_url'] as String? ?? '',
+      lastMessage: lastMessage,
+      unreadCount: json['unread_count'] as int? ?? 0,
+      isOnline: otherParticipant?['is_online'] as bool? ?? false,
+    );
+  }
 }

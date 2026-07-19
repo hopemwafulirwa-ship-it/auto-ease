@@ -1,23 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:auto_ease/src/common/widgets/gradient_background.dart';
 import 'package:auto_ease/src/common/widgets/glass_card.dart';
-import 'package:auto_ease/src/features/mechanic/data/mock_job_requests.dart';
+import 'package:auto_ease/src/features/mechanic/data/mechanic_repository.dart';
 import 'package:auto_ease/src/features/mechanic/domain/job_request.dart';
+import 'package:auto_ease/src/features/auth/data/auth_repository.dart';
 import 'package:go_router/go_router.dart';
 
-class MechanicHomeScreen extends StatelessWidget {
+class MechanicHomeScreen extends ConsumerWidget {
   const MechanicHomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-
-    final pendingJobs =
-        kMockJobRequests.where((j) => j.status == JobStatus.pending).length;
-    final activeJobs =
-        kMockJobRequests.where((j) => j.status == JobStatus.inProgress).length;
-    const todayEarnings = 345.0; // Mock
+    final currentUser = ref.watch(authRepositoryProvider).currentUser;
+    final jobRequestsValue = ref.watch(jobRequestsProvider);
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -30,7 +28,7 @@ class MechanicHomeScreen extends StatelessWidget {
             icon: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: colorScheme.surface.withValues(alpha: 0.2),
+                color: colorScheme.surface.withOpacity(0.2),
                 shape: BoxShape.circle,
               ),
               child: const Icon(Icons.notifications_outlined, size: 20),
@@ -43,115 +41,129 @@ class MechanicHomeScreen extends StatelessWidget {
       body: GradientBackground.subtle(
         colorScheme: colorScheme,
         child: SafeArea(
-          child: ListView(
-            padding: const EdgeInsets.all(24),
-            children: [
-              // Welcome Section
-              Text(
-                'Welcome back,',
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              ),
-              Text(
-                'Mike Anderson',
-                style: theme.textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: colorScheme.onSurface,
-                ),
-              ),
-              const SizedBox(height: 24),
+          child: jobRequestsValue.when(
+            data: (jobs) {
+              final pendingJobs = jobs.where((j) => j.status == JobStatus.pending).length;
+              final activeJobs = jobs.where((j) => j.status == JobStatus.inProgress).length;
+              const todayEarnings = 345.0; // Still mock for now, or could sum from completed jobs
 
-              // Metrics Cards
-              Row(
+              return ListView(
+                padding: const EdgeInsets.all(24),
                 children: [
-                  Expanded(
-                    child: _buildMetricCard(
-                      context,
-                      icon: Icons.pending_actions,
-                      label: 'Pending',
-                      value: pendingJobs.toString(),
-                      color: colorScheme.secondary,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildMetricCard(
-                      context,
-                      icon: Icons.build_circle,
-                      label: 'Active',
-                      value: activeJobs.toString(),
-                      color: colorScheme.primary,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildMetricCard(
-                      context,
-                      icon: Icons.attach_money,
-                      label: 'Today',
-                      value: '\$$todayEarnings',
-                      color: Colors.green,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 32),
-
-              // Quick Actions
-              Text(
-                'Quick Actions',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: colorScheme.primary,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildActionCard(
-                      context,
-                      icon: Icons.list_alt,
-                      label: 'Job Requests',
-                      onTap: () => context.push('/mechanic/jobs'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildActionCard(
-                      context,
-                      icon: Icons.analytics_outlined,
-                      label: 'Earnings',
-                      onTap: () => context.push('/mechanic/earnings'),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-
-              // Recent Job Requests
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
+                  // Welcome Section
                   Text(
-                    'Recent Requests',
+                    'Welcome back,',
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  Text(
+                    currentUser?.name ?? 'Mechanic',
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Metrics Cards
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildMetricCard(
+                          context,
+                          icon: Icons.pending_actions,
+                          label: 'Pending',
+                          value: pendingJobs.toString(),
+                          color: colorScheme.secondary,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildMetricCard(
+                          context,
+                          icon: Icons.build_circle,
+                          label: 'Active',
+                          value: activeJobs.toString(),
+                          color: colorScheme.primary,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildMetricCard(
+                          context,
+                          icon: Icons.attach_money,
+                          label: 'Today',
+                          value: '\$$todayEarnings',
+                          color: Colors.green,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Quick Actions
+                  Text(
+                    'Quick Actions',
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: colorScheme.primary,
                     ),
                   ),
-                  TextButton(
-                    onPressed: () => context.push('/mechanic/jobs'),
-                    child: const Text('View All'),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildActionCard(
+                          context,
+                          icon: Icons.list_alt,
+                          label: 'Job Requests',
+                          onTap: () => context.push('/mechanic/jobs'),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildActionCard(
+                          context,
+                          icon: Icons.analytics_outlined,
+                          label: 'Earnings',
+                          onTap: () => context.push('/mechanic/earnings'),
+                        ),
+                      ),
+                    ],
                   ),
+                  const SizedBox(height: 24),
+
+                  // Recent Job Requests
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Recent Requests',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.primary,
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () => context.push('/mechanic/jobs'),
+                        child: const Text('View All'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  if (jobs.isEmpty)
+                    const Center(child: Padding(
+                      padding: EdgeInsets.all(32.0),
+                      child: Text('No job requests found'),
+                    ))
+                  else
+                    ...jobs.take(3).map((job) => _buildJobCard(context, job)),
                 ],
-              ),
-              const SizedBox(height: 12),
-              ...kMockJobRequests
-                  .take(3)
-                  .map((job) => _buildJobCard(context, job)),
-            ],
+              );
+            },
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (e, st) => Center(child: Text('Error: $e')),
           ),
         ),
       ),

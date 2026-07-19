@@ -35,9 +35,7 @@ class _BookingsScreenState extends ConsumerState<BookingsScreen>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final controller = ref.watch(bookingHistoryControllerProvider.notifier);
-    final upcomingBookings = controller.getUpcomingBookings();
-    final pastBookings = controller.getPastBookings();
+    final bookingsValue = ref.watch(bookingHistoryControllerProvider);
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -50,7 +48,7 @@ class _BookingsScreenState extends ConsumerState<BookingsScreen>
           child: Container(
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+              color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
               borderRadius: BorderRadius.circular(25),
             ),
             child: TabBar(
@@ -99,12 +97,22 @@ class _BookingsScreenState extends ConsumerState<BookingsScreen>
       body: GradientBackground.subtle(
         colorScheme: colorScheme,
         child: SafeArea(
-          child: TabBarView(
-            controller: _tabController,
-            children: [
-              _buildBookingsList(upcomingBookings, isUpcoming: true),
-              _buildBookingsList(pastBookings, isUpcoming: false),
-            ],
+          child: bookingsValue.when(
+            data: (bookings) {
+              final controller = ref.read(bookingHistoryControllerProvider.notifier);
+              final upcomingBookings = controller.getUpcomingBookings(bookings);
+              final pastBookings = controller.getPastBookings(bookings);
+              
+              return TabBarView(
+                controller: _tabController,
+                children: [
+                  _buildBookingsList(upcomingBookings, isUpcoming: true),
+                  _buildBookingsList(pastBookings, isUpcoming: false),
+                ],
+              );
+            },
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (e, st) => Center(child: Text('Error: $e')),
           ),
         ),
       ),

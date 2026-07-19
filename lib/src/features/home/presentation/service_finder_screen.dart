@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:auto_ease/src/features/home/data/mock_service_centers.dart';
+import 'package:auto_ease/src/features/home/data/service_center_repository.dart';
 import 'package:auto_ease/src/features/home/presentation/map_view_widget.dart';
 import 'package:auto_ease/src/features/home/presentation/service_center_card.dart';
 import 'package:auto_ease/src/features/home/presentation/filter_bottom_sheet.dart';
@@ -28,9 +28,7 @@ class _ServiceFinderScreenState extends ConsumerState<ServiceFinderScreen> {
   @override
   Widget build(BuildContext context) {
     final searchState = ref.watch(searchControllerProvider);
-    final filteredCenters = ref
-        .read(searchControllerProvider.notifier)
-        .filterAndSortCenters(kMockServiceCenters);
+    final serviceCentersValue = ref.watch(serviceCentersProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -92,8 +90,14 @@ class _ServiceFinderScreenState extends ConsumerState<ServiceFinderScreen> {
           ),
         ],
       ),
-      body: filteredCenters.isEmpty
-          ? Center(
+      body: serviceCentersValue.when(
+        data: (centers) {
+          final filteredCenters = ref
+              .read(searchControllerProvider.notifier)
+              .filterAndSortCenters(centers);
+
+          if (filteredCenters.isEmpty) {
+            return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -126,8 +130,10 @@ class _ServiceFinderScreenState extends ConsumerState<ServiceFinderScreen> {
                   ),
                 ],
               ),
-            )
-          : _isMapView
+            );
+          }
+
+          return _isMapView
               ? MapViewWidget(serviceCenters: filteredCenters)
               : ListView.builder(
                   padding: const EdgeInsets.all(16),
@@ -141,7 +147,11 @@ class _ServiceFinderScreenState extends ConsumerState<ServiceFinderScreen> {
                       },
                     );
                   },
-                ),
+                );
+        },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, st) => Center(child: Text('Error: $e')),
+      ),
     );
   }
 }

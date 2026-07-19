@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:auto_ease/src/common/services/local_storage_service.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -59,7 +59,7 @@ class _SplashScreenState extends State<SplashScreen>
         await localStorage.setFirstTime(false);
         if (mounted) context.go('/onboarding');
       } else {
-        final user = FirebaseAuth.instance.currentUser;
+        final user = Supabase.instance.client.auth.currentUser;
         if (mounted) {
           if (user != null) {
             context.go('/home');

@@ -26,6 +26,56 @@ class JobRequest {
     required this.status,
     this.address,
   });
+
+  JobRequest copyWith({
+    String? id,
+    String? customerId,
+    String? customerName,
+    String? customerAvatar,
+    String? vehicleInfo,
+    List<String>? services,
+    DateTime? requestedDateTime,
+    String? location,
+    double? distance,
+    double? estimatedEarnings,
+    JobStatus? status,
+    String? address,
+  }) {
+    return JobRequest(
+      id: id ?? this.id,
+      customerId: customerId ?? this.customerId,
+      customerName: customerName ?? this.customerName,
+      customerAvatar: customerAvatar ?? this.customerAvatar,
+      vehicleInfo: vehicleInfo ?? this.vehicleInfo,
+      services: services ?? this.services,
+      requestedDateTime: requestedDateTime ?? this.requestedDateTime,
+      location: location ?? this.location,
+      distance: distance ?? this.distance,
+      estimatedEarnings: estimatedEarnings ?? this.estimatedEarnings,
+      status: status ?? this.status,
+      address: address ?? this.address,
+    );
+  }
+
+  factory JobRequest.fromJson(Map<String, dynamic> json) {
+    return JobRequest(
+      id: json['id'] as String,
+      customerId: json['customer_id'] as String,
+      customerName: json['customer_name'] as String? ?? 'Unknown', // This might need a join or profile fetch
+      customerAvatar: json['customer_avatar'] as String? ?? '',
+      vehicleInfo: json['vehicle_info'] as String,
+      services: List<String>.from(json['services'] ?? []),
+      requestedDateTime: DateTime.parse(json['requested_at'] as String),
+      location: json['location'] as String? ?? '',
+      distance: (json['distance'] as num?)?.toDouble() ?? 0.0,
+      estimatedEarnings: (json['estimated_earnings'] as num?)?.toDouble() ?? 0.0,
+      status: JobStatus.values.firstWhere(
+        (e) => e.name == json['status'],
+        orElse: () => JobStatus.pending,
+      ),
+      address: json['address'] as String?,
+    );
+  }
 }
 
 enum JobStatus {
@@ -33,5 +83,12 @@ enum JobStatus {
   accepted,
   inProgress,
   completed,
-  cancelled,
+  cancelled;
+
+  static JobStatus fromString(String status) {
+    return JobStatus.values.firstWhere(
+      (e) => e.name == status,
+      orElse: () => JobStatus.pending,
+    );
+  }
 }

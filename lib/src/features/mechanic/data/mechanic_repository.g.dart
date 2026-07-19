@@ -7,7 +7,7 @@ part of 'mechanic_repository.dart';
 // **************************************************************************
 
 String _$mechanicRepositoryHash() =>
-    r'762e20a0406028e8f0afe8bbe25e8819db7f28bc';
+    r'81939f211fd845916a8eeded75db59bdd3bf9a25';
 
 /// See also [mechanicRepository].
 @ProviderFor(mechanicRepository)
@@ -21,8 +21,10 @@ final mechanicRepositoryProvider = Provider<MechanicRepository>.internal(
   allTransitiveDependencies: null,
 );
 
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
 typedef MechanicRepositoryRef = ProviderRef<MechanicRepository>;
-String _$jobRequestHash() => r'4f9b48d8ed0cdda2d037e91ac877e418e9f1d28c';
+String _$jobRequestHash() => r'f9df7962a042729b328881e78dbaf8e8068757e8';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -158,6 +160,8 @@ class JobRequestProvider extends AutoDisposeStreamProvider<JobRequest?> {
   }
 }
 
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
 mixin JobRequestRef on AutoDisposeStreamProviderRef<JobRequest?> {
   /// The parameter `id` of this provider.
   String get id;
@@ -171,7 +175,24 @@ class _JobRequestProviderElement
   String get id => (origin as JobRequestProvider).id;
 }
 
-String _$jobRequestFutureHash() => r'd1223c0e64494fd696a85ad94822e5149344c9e2';
+String _$jobRequestsHash() => r'82f719af37835112e5ee2d5ca3c98140d023c957';
+
+/// See also [jobRequests].
+@ProviderFor(jobRequests)
+final jobRequestsProvider =
+    AutoDisposeStreamProvider<List<JobRequest>>.internal(
+  jobRequests,
+  name: r'jobRequestsProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product') ? null : _$jobRequestsHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef JobRequestsRef = AutoDisposeStreamProviderRef<List<JobRequest>>;
+String _$jobRequestFutureHash() => r'a000a65d91ae9629613733e8b326bb0693cb8a76';
 
 /// See also [jobRequestFuture].
 @ProviderFor(jobRequestFuture)
@@ -286,6 +307,8 @@ class JobRequestFutureProvider extends AutoDisposeFutureProvider<JobRequest?> {
   }
 }
 
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
 mixin JobRequestFutureRef on AutoDisposeFutureProviderRef<JobRequest?> {
   /// The parameter `id` of this provider.
   String get id;
@@ -300,4 +323,4 @@ class _JobRequestFutureProviderElement
   String get id => (origin as JobRequestFutureProvider).id;
 }
 // ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member
+// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

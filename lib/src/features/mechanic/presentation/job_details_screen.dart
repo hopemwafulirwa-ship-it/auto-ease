@@ -220,10 +220,15 @@ class JobDetailsScreen extends ConsumerWidget {
                   // Action Buttons
                   if (job.status == JobStatus.accepted)
                     FilledButton.icon(
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Service started!')),
-                        );
+                      onPressed: () async {
+                        await ref
+                            .read(mechanicRepositoryProvider)
+                            .updateJobStatus(jobId, JobStatus.inProgress);
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Service started!')),
+                          );
+                        }
                       },
                       icon: const Icon(Icons.play_arrow),
                       label: const Text('Start Service'),
@@ -233,11 +238,16 @@ class JobDetailsScreen extends ConsumerWidget {
                     ),
                   if (job.status == JobStatus.inProgress)
                     FilledButton.icon(
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text('Service marked as complete!')),
-                        );
+                      onPressed: () async {
+                        await ref
+                            .read(mechanicRepositoryProvider)
+                            .updateJobStatus(jobId, JobStatus.completed);
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text('Service marked as complete!')),
+                          );
+                        }
                       },
                       icon: const Icon(Icons.check_circle),
                       label: const Text('Mark as Complete'),

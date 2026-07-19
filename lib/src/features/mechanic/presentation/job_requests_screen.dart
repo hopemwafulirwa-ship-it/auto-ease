@@ -1,28 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:auto_ease/src/features/mechanic/data/mechanic_repository.dart';
 import 'package:auto_ease/src/common/widgets/gradient_background.dart';
 import 'package:auto_ease/src/common/widgets/glass_card.dart';
-import 'package:auto_ease/src/features/mechanic/data/mock_job_requests.dart';
 import 'package:auto_ease/src/features/mechanic/domain/job_request.dart';
 import 'package:go_router/go_router.dart';
 
-class JobRequestsScreen extends StatefulWidget {
+class JobRequestsScreen extends ConsumerStatefulWidget {
   const JobRequestsScreen({super.key});
 
   @override
-  State<JobRequestsScreen> createState() => _JobRequestsScreenState();
+  ConsumerState<JobRequestsScreen> createState() => _JobRequestsScreenState();
 }
 
-class _JobRequestsScreenState extends State<JobRequestsScreen> {
+class _JobRequestsScreenState extends ConsumerState<JobRequestsScreen> {
   JobStatus? _selectedStatus;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-
-    final filteredJobs = _selectedStatus == null
-        ? kMockJobRequests
-        : kMockJobRequests.where((j) => j.status == _selectedStatus).toList();
+    final jobRequestsValue = ref.watch(jobRequestsProvider);
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -62,13 +60,27 @@ class _JobRequestsScreenState extends State<JobRequestsScreen> {
 
               // Job List
               Expanded(
-                child: ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  itemCount: filteredJobs.length,
-                  itemBuilder: (context, index) {
-                    final job = filteredJobs[index];
-                    return _buildJobCard(context, job);
+                child: jobRequestsValue.when(
+                  data: (jobs) {
+                    final filteredJobs = _selectedStatus == null
+                        ? jobs
+                        : jobs.where((j) => j.status == _selectedStatus).toList();
+
+                    if (filteredJobs.isEmpty) {
+                      return const Center(child: Text('No job requests found'));
+                    }
+
+                    return ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      itemCount: filteredJobs.length,
+                      itemBuilder: (context, index) {
+                        final job = filteredJobs[index];
+                        return _buildJobCard(context, job);
+                      },
+                    );
                   },
+                  loading: () => const Center(child: CircularProgressIndicator()),
+                  error: (e, st) => Center(child: Text('Error: $e')),
                 ),
               ),
             ],
@@ -143,7 +155,7 @@ class _JobRequestsScreenState extends State<JobRequestsScreen> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: _getStatusColor(job.status).withValues(alpha: 0.2),
+                  color: _getStatusColor(job.status).withOpacity(0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
@@ -223,11 +235,15 @@ class _JobRequestsScreenState extends State<JobRequestsScreen> {
               children: [
                 Expanded(
                   child: OutlinedButton(
-                    onPressed: () {
-                      // Reject action
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Job rejected')),
-                      );
+                    onPressed: () async {
+                      await ref
+                          .read(mechanicRepositoryProvider)
+                          .updateJobStatus(job.id, JobStatus.cancelled);
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Job rejected')),
+                        );
+                      }
                     },
                     child: const Text('Reject'),
                   ),
@@ -235,11 +251,15 @@ class _JobRequestsScreenState extends State<JobRequestsScreen> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: FilledButton(
-                    onPressed: () {
-                      // Accept action
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Job accepted!')),
-                      );
+                    onPressed: () async {
+                      await ref
+                          .read(mechanicRepositoryProvider)
+                          .updateJobStatus(job.id, JobStatus.accepted);
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Job accepted!')),
+                        );
+                      }
                     },
                     child: const Text('Accept'),
                   ),

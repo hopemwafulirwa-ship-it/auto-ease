@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:auto_ease/src/common/widgets/gradient_background.dart';
 import 'package:auto_ease/src/common/widgets/glass_card.dart';
 import 'package:auto_ease/src/common/utils/animation_extensions.dart';
-import 'package:auto_ease/src/features/chat/data/mock_chat_data.dart';
+import 'package:auto_ease/src/features/chat/data/chat_repository.dart';
 import 'package:auto_ease/src/features/chat/domain/chat_room.dart';
 import 'package:intl/intl.dart';
 
-class ChatScreen extends StatelessWidget {
+class ChatScreen extends ConsumerWidget {
   const ChatScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final chatRoomsValue = ref.watch(chatRoomsProvider);
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -31,13 +33,19 @@ class ChatScreen extends StatelessWidget {
       body: GradientBackground.subtle(
         colorScheme: colorScheme,
         child: SafeArea(
-          child: ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: kMockChatRooms.length,
-            itemBuilder: (context, index) {
-              final chatRoom = kMockChatRooms[index];
-              return _ChatListItem(chatRoom: chatRoom).staggeredListItem(index);
-            },
+          child: chatRoomsValue.when(
+            data: (rooms) => rooms.isEmpty
+                ? const Center(child: Text('No messages yet'))
+                : ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: rooms.length,
+                    itemBuilder: (context, index) {
+                      final chatRoom = rooms[index];
+                      return _ChatListItem(chatRoom: chatRoom).staggeredListItem(index);
+                    },
+                  ),
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (e, st) => Center(child: Text('Error: $e')),
           ),
         ),
       ),

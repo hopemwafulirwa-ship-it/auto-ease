@@ -25,6 +25,22 @@ class BookingHistory {
     this.notes,
   });
 
+  factory BookingHistory.fromJson(Map<String, dynamic> json) {
+    return BookingHistory(
+      id: json['id'] as String,
+      serviceCenterId: json['service_center_id'] as String,
+      serviceCenterName: json['service_center_name'] as String? ?? 'Unknown Service Center',
+      services: List<String>.from(json['services'] ?? []),
+      dateTime: DateTime.parse(json['booking_date'] as String),
+      status: BookingStatus.values.firstWhere(
+        (e) => e.name == json['status'] as String?,
+        orElse: () => BookingStatus.upcoming,
+      ),
+      totalPrice: (json['total_price'] as num).toDouble(),
+      notes: json['notes'] as String?,
+    );
+  }
+
   BookingHistory copyWith({
     String? id,
     String? serviceCenterId,

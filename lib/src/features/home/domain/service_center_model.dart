@@ -24,4 +24,19 @@ class ServiceCenter {
     required this.services,
     required this.imageUrl,
   });
+  factory ServiceCenter.fromJson(Map<String, dynamic> json) {
+    return ServiceCenter(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      address: json['address'] as String,
+      latitude: (json['latitude'] as num).toDouble(),
+      longitude: (json['longitude'] as num).toDouble(),
+      rating: (json['rating'] as num).toDouble(),
+      reviewCount: json['review_count'] as int,
+      distance: (json['distance'] as num?)?.toDouble() ?? 0.0,
+      isOpen: json['is_open'] as bool? ?? true,
+      services: List<String>.from(json['services'] ?? []),
+      imageUrl: json['image_url'] as String? ?? 'https://via.placeholder.com/400x200',
+    );
+  }
 }

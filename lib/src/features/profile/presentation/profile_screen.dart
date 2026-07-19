@@ -10,91 +10,97 @@ class ProfileScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final profile = ref.watch(profileControllerProvider);
+    final profileValue = ref.watch(profileControllerProvider);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        title: const Text('Profile'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: colorScheme.surface.withValues(alpha: 0.2),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.edit, size: 20),
-            ),
-            onPressed: () {
-              context.push('/profile/edit');
-            },
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
-      body: GradientBackground.subtle(
-        colorScheme: colorScheme,
-        child: SafeArea(
-          child: ListView(
-            padding: const EdgeInsets.all(24),
-            children: [
-              // User Avatar and Name
-              Center(
-                child: Column(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: colorScheme.primary.withValues(alpha: 0.5),
-                          width: 2,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: colorScheme.primary.withValues(alpha: 0.2),
-                            blurRadius: 20,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: CircleAvatar(
-                        radius: 50,
-                        backgroundColor: colorScheme.primaryContainer,
-                        child: Text(
-                          profile.email.isNotEmpty
-                              ? profile.email[0].toUpperCase()
-                              : '?',
-                          style: theme.textTheme.headlineLarge?.copyWith(
-                            color: colorScheme.onPrimaryContainer,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Alex Johnson', // Mock Name
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.onSurface,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      profile.email,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
+    return profileValue.when(
+      data: (profile) => Scaffold(
+        extendBodyBehindAppBar: true,
+        appBar: AppBar(
+          title: const Text('Profile'),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          actions: [
+            IconButton(
+              icon: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: colorScheme.surface.withOpacity(0.2),
+                  shape: BoxShape.circle,
                 ),
+                child: const Icon(Icons.edit, size: 20),
               ),
+              onPressed: () {
+                context.push('/profile/edit');
+              },
+            ),
+            const SizedBox(width: 8),
+          ],
+        ),
+        body: GradientBackground.subtle(
+          colorScheme: colorScheme,
+          child: SafeArea(
+            child: ListView(
+              padding: const EdgeInsets.all(24),
+              children: [
+                // User Avatar and Name
+                Center(
+                  child: Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: colorScheme.primary.withOpacity(0.5),
+                            width: 2,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: colorScheme.primary.withOpacity(0.2),
+                              blurRadius: 20,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: CircleAvatar(
+                          radius: 50,
+                          backgroundColor: colorScheme.primaryContainer,
+                          backgroundImage: profile.avatarUrl != null 
+                              ? NetworkImage(profile.avatarUrl!) 
+                              : null,
+                          child: profile.avatarUrl == null
+                              ? Text(
+                                  profile.email.isNotEmpty
+                                      ? profile.email[0].toUpperCase()
+                                      : '?',
+                                  style: theme.textTheme.headlineLarge?.copyWith(
+                                    color: colorScheme.onPrimaryContainer,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                )
+                              : null,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        profile.name.isNotEmpty ? profile.name : 'Unknown User',
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.onSurface,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        profile.email,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               const SizedBox(height: 32),
 
               // Personal Information Section
@@ -113,7 +119,7 @@ class ProfileScreen extends ConsumerWidget {
                     Divider(
                       height: 1,
                       indent: 56,
-                      color: colorScheme.outline.withValues(alpha: 0.1),
+                      color: colorScheme.outline.withOpacity(0.1),
                     ),
                     _buildListTile(
                       context,
@@ -138,7 +144,7 @@ class ProfileScreen extends ConsumerWidget {
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
                           color: colorScheme.primaryContainer
-                              .withValues(alpha: 0.5),
+                              .withOpacity(0.5),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Icon(
@@ -159,14 +165,14 @@ class ProfileScreen extends ConsumerWidget {
                     Divider(
                       height: 1,
                       indent: 56,
-                      color: colorScheme.outline.withValues(alpha: 0.1),
+                      color: colorScheme.outline.withOpacity(0.1),
                     ),
                     SwitchListTile(
                       secondary: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
                           color: colorScheme.primaryContainer
-                              .withValues(alpha: 0.5),
+                              .withOpacity(0.5),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Icon(
@@ -205,7 +211,7 @@ class ProfileScreen extends ConsumerWidget {
                     Divider(
                       height: 1,
                       indent: 56,
-                      color: colorScheme.outline.withValues(alpha: 0.1),
+                      color: colorScheme.outline.withOpacity(0.1),
                     ),
                     _buildListTile(
                       context,
@@ -217,7 +223,7 @@ class ProfileScreen extends ConsumerWidget {
                     Divider(
                       height: 1,
                       indent: 56,
-                      color: colorScheme.outline.withValues(alpha: 0.1),
+                      color: colorScheme.outline.withOpacity(0.1),
                     ),
                     _buildListTile(
                       context,
@@ -249,6 +255,45 @@ class ProfileScreen extends ConsumerWidget {
           ),
         ),
       ),
+    ),
+    loading: () => Scaffold(
+        body: GradientBackground.subtle(
+          colorScheme: colorScheme,
+          child: const Center(child: CircularProgressIndicator()),
+        ),
+      ),
+      error: (e, st) => Scaffold(
+        body: GradientBackground.subtle(
+          colorScheme: colorScheme,
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, color: colorScheme.error, size: 48),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Failed to load profile',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      color: colorScheme.error,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    e.toString(),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -277,7 +322,7 @@ class ProfileScreen extends ConsumerWidget {
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: colorScheme.primaryContainer.withValues(alpha: 0.5),
+          color: colorScheme.primaryContainer.withOpacity(0.5),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Icon(
