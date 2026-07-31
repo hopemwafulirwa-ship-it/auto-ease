@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoEase Codebase & Scope Expansion Analysis Report</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #f59e0b;
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --accent: #10b981;
+            --radius: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 2.5rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 1.5rem;
+        }
+
+        .badge {
+            display: inline-block;
+            background: rgba(37, 99, 235, 0.2);
+            color: #60a5fa;
+            border: 1px solid rgba(96, 165, 250, 0.3);
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+
+        h1 {
+            font-size: 2.25rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 0.5rem;
+        }
+
+        p.subtitle {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        }
+
+        .card h2 {
+            font-size: 1.3rem;
+            color: #38bdf8;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        ul {
+            list-style: none;
+        }
+
+        li {
+            position: relative;
+            padding-left: 1.25rem;
+            margin-bottom: 0.5rem;
+            color: #e2e8f0;
+        }
+
+        li::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: var(--secondary);
+            font-weight: bold;
+        }
+
+        .tech-pill {
+            display: inline-block;
+            background: #334155;
+            color: #f1f5f9;
+            padding: 0.25rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            margin: 0.2rem 0.2rem 0.2rem 0;
+            font-family: monospace;
+        }
+
+        .arch-tree {
+            background: #090d16;
+            border: 1px solid var(--border);
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9rem;
+            color: #a7f3d0;
+            overflow-x: auto;
+            white-space: pre;
+        }
+
+        .section-title {
+            font-size: 1.6rem;
+            margin: 2.5rem 0 1rem 0;
+            color: #ffffff;
+            border-left: 4px solid var(--primary);
+            padding-left: 0.75rem;
+        }
+
+        .bmad-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .bmad-table th, .bmad-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .bmad-table th {
+            background: #0f172a;
+            color: #38bdf8;
+            font-weight: 600;
+        }
+
+        .bmad-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        footer {
+            margin-top: 3rem;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            border-top: 1px solid var(--border);
+            padding-top: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <span class="badge">SOFTWARE ANALYSIS REPORT</span>
+        <h1>AutoEase (🚗✨) Codebase Findings</h1>
+        <p class="subtitle">Comprehensive analysis of project scope, architecture, current capabilities, and strategic expansion roadmap for Bmad alignment.</p>
+    </header>
+
+    <!-- Overview & Purpose -->
+    <div class="grid">
+        <div class="card">
+            <h2>🎯 Core Purpose</h2>
+            <p style="margin-bottom: 1rem; color: #cbd5e1;">
+                AutoEase is a dual-role, location-based mobile application built to bridge the gap between vehicle owners and nearby car service centers / mechanics.
+            </p>
+            <ul>
+                <li><strong>Target Users:</strong> Vehicle owners (Customers) & Auto Service Professionals (Mechanics/Providers).</li>
+                <li><strong>Value Proposition:</strong> Instant discovery, real-time map filtering, friction-free booking, live status tracking, and direct in-app messaging.</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>🛠️ Technical Stack</h2>
+            <div>
+                <span class="tech-pill">Flutter (Dart)</span>
+                <span class="tech-pill">Riverpod 2.x</span>
+                <span class="tech-pill">Supabase Backend</span>
+                <span class="tech-pill">GoRouter</span>
+                <span class="tech-pill">Google Maps SDK</span>
+                <span class="tech-pill">Material 3</span>
+                <span class="tech-pill">flutter_animate</span>
+                <span class="tech-pill">geolocator</span>
+                <span class="tech-pill">BDD Widget Test</span>
+            </div>
+            <p style="margin-top: 1rem; color: #94a3b8; font-size: 0.9rem;">
+                Architecture emphasizes Feature-First Riverpod code generation, clean separation of concerns, and full cross-platform readiness (iOS & Android).
+            </p>
+        </div>
+    </div>
+
+    <!-- Feature Matrix -->
+    <h2 class="section-title">✨ Existing Feature Breakdown</h2>
+    <div class="grid">
+        <div class="card">
+            <h2>👤 Customer Experience</h2>
+            <ul>
+                <li><strong>Interactive Discovery:</strong> Map-based service center locator with glassmorphic filter overlays (distance, rating, service type).</li>
+                <li><strong>Booking Flow:</strong> Multi-step selection (Service -> Date/Time -> Confirmation -> Success).</li>
+                <li><strong>Tracking:</strong> Animated timeline tracking job progression (Pending -> In Progress -> Completed).</li>
+                <li><strong>Ratings & Reviews:</strong> Customer review submission system.</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>🔧 Mechanic / Provider Experience</h2>
+            <ul>
+                <li><strong>Mechanic Dashboard:</strong> Overview of active jobs, requests, and performance metrics.</li>
+                <li><strong>Job Management:</strong> Real-time incoming job request list with detailed diagnostic view.</li>
+                <li><strong>Earnings Dashboard:</strong> Financial breakdown, payout tracking, and completed job revenue metrics.</li>
+                <li><strong>Role Selection:</strong> Seamless user role onboarding (Customer vs. Mechanic).</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>💬 Platform Services</h2>
+            <ul>
+                <li><strong>Real-Time Messaging:</strong> Direct chat module between customer and assigned mechanic.</li>
+                <li><strong>Supabase Auth:</strong> Secure email/password login, registration, and password recovery.</li>
+                <li><strong>Theme Engine:</strong> Dark & Light mode system with custom Material 3 extensions.</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Architecture & Structure -->
+    <h2 class="section-title">📂 Project Architecture & Directory Map</h2>
+    <div class="card" style="margin-bottom: 2rem;">
+        <p style="margin-bottom: 1rem; color: #cbd5e1;">The codebase adopts a scalable <strong>Feature-First Architecture</strong> with strict layer isolation within each module:</p>
+        <div class="arch-tree">
+lib/
+├── main.dart                      # App initialization & Supabase setup
+└── src/
+    ├── common/                    # App-wide UI design system, themes, & Supabase client config
+    ├── routing/                   # GoRouter navigation & auth-guard streams
+    └── features/                  # Independent functional modules
+        ├── auth/                  # Login, Register, Role Selection, Splash
+        ├── booking/               # Service selection, calendar, confirmation
+        ├── chat/                  # Real-time customer-mechanic messaging
+        ├── home/                  # Customer main scaffold & Service finder map
+        ├── mechanic/              # Provider dashboard, job requests, earnings
+        ├── onboarding/            # Intro walkthrough screens
+        ├── profile/               # Edit user profile & preferences
+        ├── reviews/               # Star rating & feedback forms
+        └── tracking/              # Live service status timeline
+        
+*(Each feature module is structured into domain/, data/, application/, and presentation/)*</div>
+    </div>
+
+    <!-- Scope Expansion Roadmap with Bmad -->
+    <h2 class="section-title">🚀 Bmad Scope Expansion & Growth Roadmap</h2>
+    <p style="color: #cbd5e1; margin-bottom: 1rem;">To scale AutoEase into an enterprise-grade automotive service ecosystem, the following expansion modules and epics are recommended for Bmad planning:</p>
+
+    <table class="bmad-table">
+        <thead>
+            <tr>
+                <th>Expansion Module</th>
+                <th>Core Functionality & User Value</th>
+                <th>Bmad Implementation Plan</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>1. Payment & Escrow Gateway</strong></td>
+                <td>Integrated Stripe / Paystack payments with escrow holding until service completion confirmation.</td>
+                <td>Add <code>features/payments</code> module; implement Supabase Edge Functions for webhook validation.</td>
+            </tr>
+            <tr>
+                <td><strong>2. Emergency Roadside Dispatch</strong></td>
+                <td>1-tap SOS distress button for breakdown assistance with live GPS location towing dispatch.</td>
+                <td>Create emergency alert queues, background geofencing, and automated mechanic dispatching algorithms.</td>
+            </tr>
+            <tr>
+                <td><strong>3. Vehicle Telematics & Diagnostics</strong></td>
+                <td>OBD-II Bluetooth integration to read diagnostic trouble codes (DTC) and alert mechanics pre-arrival.</td>
+                <td>Add flutter_blue_plus plugin, OBD parser domain entities, and automatic service estimator.</td>
+            </tr>
+            <tr>
+                <td><strong>4. Fleet & Subscription Management</strong></td>
+                <td>B2B portal for enterprise fleets to manage recurring maintenance schedules and bulk billing.</td>
+                <td>Extend domain models for multi-vehicle garage management and subscription tiering.</td>
+            </tr>
+            <tr>
+                <td><strong>5. Push Notifications & Real-Time Sync</strong></td>
+                <td>FCM / APNS notifications for booking updates, chat messages, and mechanic ETA tracking.</td>
+                <td>Implement Supabase Realtime listeners and push notification trigger webhooks.</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <footer>
+        AutoEase Software Analysis • Generated for Scope Expansion with Bmad • July 2026
+    </footer>
+</div>
+
+</body>
+</html>
