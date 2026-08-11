@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:auto_ease/src/common/services/local_storage_service.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -59,14 +58,9 @@ class _SplashScreenState extends State<SplashScreen>
         await localStorage.setFirstTime(false);
         if (mounted) context.go('/onboarding');
       } else {
-        final user = Supabase.instance.client.auth.currentUser;
-        if (mounted) {
-          if (user != null) {
-            context.go('/home');
-          } else {
-            context.go('/login');
-          }
-        }
+        // Check auth state - the router will handle redirect based on auth state
+        // We just need to go to a route that will be evaluated by the redirect logic
+        if (mounted) context.go('/home');
       }
     } catch (e) {
       // Fallback in case of error
