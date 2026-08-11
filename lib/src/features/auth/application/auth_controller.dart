@@ -1,5 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:auto_ease/src/features/auth/data/auth_repository.dart';
+import 'package:auto_ease/src/features/auth/domain/app_user.dart';
 
 part 'auth_controller.g.dart';
 
@@ -23,6 +24,7 @@ class AuthController extends _$AuthController {
     required String email,
     required String password,
     String? name,
+    AppUserRole role = AppUserRole.customer,
   }) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(
@@ -30,6 +32,7 @@ class AuthController extends _$AuthController {
             email: email,
             password: password,
             name: name,
+            role: role,
           ),
     );
   }

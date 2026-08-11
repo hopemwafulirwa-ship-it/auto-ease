@@ -54,20 +54,22 @@ GoRouter goRouter(Ref ref) {
     refreshListenable: GoRouterRefreshStream(authRepository.authStateChanges()),
     redirect: (context, state) {
       final isLoggedIn = authRepository.currentUser != null;
-      final isLoggingIn = state.matchedLocation == '/login' ||
+      final isAuthRoute = state.matchedLocation == '/login' ||
           state.matchedLocation == '/register' ||
-          state.matchedLocation == '/forgot-password';
+          state.matchedLocation == '/forgot-password' ||
+          state.matchedLocation == '/onboarding' ||
+          state.matchedLocation == '/role-selection';
 
+      // If not logged in, allow access to auth routes only
       if (!isLoggedIn) {
-        if (isLoggingIn ||
-            state.matchedLocation == '/' ||
-            state.matchedLocation == '/onboarding') {
+        if (isAuthRoute || state.matchedLocation == '/') {
           return null;
         }
         return '/login';
       }
 
-      if (isLoggingIn) {
+      // If logged in and trying to access auth routes, redirect to home
+      if (isAuthRoute) {
         return '/home';
       }
 
