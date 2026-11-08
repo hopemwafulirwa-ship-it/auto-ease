@@ -1,4 +1,12 @@
-```
+# Flutter/Dart/Pub related
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+
 # Build artifacts
 *.class
 *.o
@@ -8,7 +16,6 @@
 *.dll
 *.so
 *.a
-build/
 dist/
 target/
 
@@ -66,4 +73,6 @@ htmlcov/
 *.tar.bz2
 *.tar.xz
 *.tar.zst
-```
+
+# Widget Preview related
+.widget_preview/
