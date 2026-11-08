@@ -1,6 +1,6 @@
 # Story 1.1: User Onboarding, Multi-Role Registration & Supabase Auth Integration
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -22,26 +22,26 @@ so that I can securely authenticate, persist my session, and access role-specifi
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Domain & Model Setup (AC: 1, 2)
-  - [ ] Define `UserProfile` entity and `UserRole` enum (`customer`, `mechanic`) in `lib/src/features/auth/domain/user_profile.dart`.
-  - [ ] Implement JSON serialization / Supabase mapping for `UserProfile`.
-- [ ] Task 2: Supabase Auth Repository (AC: 1, 2, 3)
-  - [ ] Create `AuthRepository` interface and Supabase implementation in `lib/src/features/auth/data/auth_repository.dart`.
-  - [ ] Implement `signUpWithEmailAndPassword({required String email, required String password, required UserRole role})`.
-  - [ ] Implement `signInWithEmailAndPassword({required String email, required String password})`.
-  - [ ] Implement `signOut()` and `currentSessionStream`.
-- [ ] Task 3: Riverpod Auth State Management (AC: 1, 2, 3)
-  - [ ] Implement `authControllerProvider` in `lib/src/features/auth/presentation/auth_controller.dart`.
-  - [ ] Handle async state (`AsyncValue`), loading indicators, and error catching.
-- [ ] Task 4: UI Onboarding & Auth Screens (AC: 1, 3)
-  - [ ] Create `OnboardingScreen` in `lib/src/features/onboarding/presentation/onboarding_screen.dart`.
-  - [ ] Create `SignInScreen` and `SignUpScreen` with role toggle selector in `lib/src/features/auth/presentation/`.
-  - [ ] Connect form validators and submit handlers to `authControllerProvider`.
-- [ ] Task 5: Routing & Session Guarding (AC: 1, 2)
-  - [ ] Update `lib/src/routing/app_router.dart` to listen to auth state changes and guard protected routes (`/home` vs `/login`/`/onboarding`).
-- [ ] Task 6: Unit & BDD Widget Tests (AC: 1, 2, 3)
-  - [ ] Add unit tests for `AuthRepository` and `AuthController`.
-  - [ ] Add widget tests for `SignUpScreen` role selection and form validation.
+- [x] Task 1: Domain & Model Setup (AC: 1, 2)
+  - [x] Define `UserProfile` entity and `UserRole` enum (`customer`, `mechanic`) in `lib/src/features/auth/domain/app_user.dart` and `lib/src/features/profile/domain/user_profile.dart`.
+  - [x] Implement JSON serialization / Supabase mapping for `AppUser` and `UserProfile`.
+- [x] Task 2: Supabase Auth Repository (AC: 1, 2, 3)
+  - [x] Create `AuthRepository` interface and Supabase implementation in `lib/src/features/auth/data/auth_repository.dart`.
+  - [x] Implement `signUpWithEmailAndPassword({required String email, required String password, String? name, AppUserRole role})`.
+  - [x] Implement `signInWithEmailAndPassword(String email, String password)`.
+  - [x] Implement `signOut()` and `authStateChanges()`.
+- [x] Task 3: Riverpod Auth State Management (AC: 1, 2, 3)
+  - [x] Implement `authControllerProvider` in `lib/src/features/auth/application/auth_controller.dart`.
+  - [x] Handle async state (`AsyncValue`), loading indicators, and error catching.
+- [x] Task 4: UI Onboarding & Auth Screens (AC: 1, 3)
+  - [x] Create `OnboardingScreen` in `lib/src/features/onboarding/presentation/onboarding_screen.dart`.
+  - [x] Create `LoginScreen` and `RegisterScreen` with role toggle selector in `lib/src/features/auth/presentation/`.
+  - [x] Connect form validators and submit handlers to `authControllerProvider`.
+- [x] Task 5: Routing & Session Guarding (AC: 1, 2)
+  - [x] Update `lib/src/routing/app_router.dart` to listen to auth state changes and guard protected routes (`/home` and `/mechanic/home` vs `/login`/`/onboarding`).
+- [x] Task 6: Unit & BDD Widget Tests (AC: 1, 2, 3)
+  - [x] Add unit tests for `AuthRepository` and `AuthController`.
+  - [x] Add widget tests for `RegisterScreen` role selection and form validation.
 
 ## Dev Notes
 

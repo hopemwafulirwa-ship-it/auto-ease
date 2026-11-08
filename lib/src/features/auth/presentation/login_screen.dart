@@ -311,6 +311,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             icon: Image.network(
                               'https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png',
                               height: 24,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  const Icon(Icons.g_mobiledata, size: 24),
                             ),
                             label: const Text('Google'),
                             style: OutlinedButton.styleFrom(

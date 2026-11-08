@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:auto_ease/src/common/services/local_storage_service.dart';
+import 'package:auto_ease/src/features/auth/data/auth_repository.dart';
+import 'package:auto_ease/src/features/auth/domain/app_user.dart';
 
-class SplashScreen extends StatefulWidget {
+class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  ConsumerState<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen>
+class _SplashScreenState extends ConsumerState<SplashScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
@@ -43,24 +46,30 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _handleNavigation() async {
-    // Wait for animation and minimum splash duration
-    await Future.delayed(const Duration(seconds: 3));
+    // Wait for animation duration
+    await Future.delayed(const Duration(milliseconds: 1500));
 
     if (!mounted) return;
 
     try {
+      final currentUser = ref.read(authRepositoryProvider).currentUser;
+      if (currentUser != null) {
+        final target = currentUser.role == AppUserRole.mechanic
+            ? '/mechanic/home'
+            : '/home';
+        if (mounted) context.go(target);
+        return;
+      }
+
       final localStorage = await LocalStorageService.init();
       final isFirstTime = localStorage.getIsFirstTime();
 
       if (!mounted) return;
 
       if (isFirstTime) {
-        await localStorage.setFirstTime(false);
         if (mounted) context.go('/onboarding');
       } else {
-        // Check auth state - the router will handle redirect based on auth state
-        // We just need to go to a route that will be evaluated by the redirect logic
-        if (mounted) context.go('/home');
+        if (mounted) context.go('/login');
       }
     } catch (e) {
       // Fallback in case of error

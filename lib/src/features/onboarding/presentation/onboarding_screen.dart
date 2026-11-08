@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:auto_ease/src/common/services/local_storage_service.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -39,14 +40,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     super.dispose();
   }
 
-  void _onNext() {
+  Future<void> _onNext() async {
     if (_currentPage < _pages.length - 1) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
       );
     } else {
-      context.go('/login');
+      try {
+        final localStorage = await LocalStorageService.init();
+        await localStorage.setFirstTime(false);
+      } catch (_) {}
+      if (mounted) {
+        context.go('/login');
+      }
     }
   }
 

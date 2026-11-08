@@ -46,28 +46,35 @@ class AuthRepository {
         password: password,
         data: {
           if (name != null) 'name': name,
+          if (name != null) 'full_name': name,
           'role': role.name,
         },
       );
 
       final user = response.user;
       if (user != null) {
-        // Create profile entry
+        // Persist corresponding record in profiles table with role metadata
         try {
-          await _supabase.from('profiles').insert({
+          await _supabase.from('profiles').upsert({
             'id': user.id,
+            'email': email,
             'name': name,
+            'full_name': name,
             'role': role.name,
             'avatar_url': user.userMetadata?['avatar_url'],
           });
-        } catch (e) {
-          // If profile creation fails, we might want to log it or handle it
-          // but the user is already created in auth.users
+        } on PostgrestException catch (e) {
           debugPrint('Error creating profile: $e');
+          throw Exception('Failed to save user profile: ${e.message}');
+        } catch (e) {
+          debugPrint('Error creating profile: $e');
+          throw Exception('Failed to save user profile');
         }
       }
     } on AuthException catch (e) {
       throw _handleAuthException(e);
+    } on Exception {
+      rethrow;
     } catch (e) {
       throw Exception('An unexpected error occurred during sign up');
     }

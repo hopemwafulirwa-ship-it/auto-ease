@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:auto_ease/src/features/auth/data/auth_repository.dart';
+import 'package:auto_ease/src/features/auth/domain/app_user.dart';
 import 'package:auto_ease/src/features/auth/presentation/splash_screen.dart';
 import 'package:auto_ease/src/features/auth/presentation/login_screen.dart';
 import 'package:auto_ease/src/features/auth/presentation/register_screen.dart';
@@ -53,7 +54,8 @@ GoRouter goRouter(Ref ref) {
     debugLogDiagnostics: true,
     refreshListenable: GoRouterRefreshStream(authRepository.authStateChanges()),
     redirect: (context, state) {
-      final isLoggedIn = authRepository.currentUser != null;
+      final currentUser = authRepository.currentUser;
+      final isLoggedIn = currentUser != null;
       final isAuthRoute = state.matchedLocation == '/login' ||
           state.matchedLocation == '/register' ||
           state.matchedLocation == '/forgot-password' ||
@@ -68,9 +70,11 @@ GoRouter goRouter(Ref ref) {
         return '/login';
       }
 
-      // If logged in and trying to access auth routes, redirect to home
+      // If logged in and trying to access auth routes, redirect to role-specific home
       if (isAuthRoute) {
-        return '/home';
+        return currentUser.role == AppUserRole.mechanic
+            ? '/mechanic/home'
+            : '/home';
       }
 
       return null;
