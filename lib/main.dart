@@ -1,18 +1,13 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:auto_ease/src/routing/app_router.dart';
 import 'package:auto_ease/src/common/theme/app_theme.dart';
 import 'package:auto_ease/src/common/supabase_config.dart';
 
-void main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  await Supabase.initialize(
-    url: supabaseUrl,
-    anonKey: supabaseAnonKey,
-  );
-  
+  unawaited(ensureSupabaseInitialized());
   runApp(const ProviderScope(child: AutoEaseApp()));
 }
 

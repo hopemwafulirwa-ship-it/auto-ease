@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:auto_ease/src/common/services/local_storage_service.dart';
+import 'package:auto_ease/src/common/supabase_config.dart';
 import 'package:auto_ease/src/features/auth/data/auth_repository.dart';
 import 'package:auto_ease/src/features/auth/domain/app_user.dart';
 
@@ -45,11 +46,23 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     _handleNavigation();
   }
 
-  Future<void> _handleNavigation() async {
-    // Wait for animation duration
-    await Future.delayed(const Duration(milliseconds: 1500));
+  bool get _isStillOnSplashRoute {
+    if (!mounted) return false;
+    try {
+      return GoRouterState.of(context).matchedLocation == '/';
+    } catch (_) {
+      return true;
+    }
+  }
 
-    if (!mounted) return;
+  Future<void> _handleNavigation() async {
+    // Run animation delay and Supabase initialization (with 5s timeout) in parallel
+    await Future.wait([
+      Future.delayed(const Duration(milliseconds: 1500)),
+      ensureSupabaseInitialized(),
+    ]);
+
+    if (!_isStillOnSplashRoute) return;
 
     try {
       final currentUser = ref.read(authRepositoryProvider).currentUser;
@@ -57,23 +70,23 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         final target = currentUser.role == AppUserRole.mechanic
             ? '/mechanic/home'
             : '/home';
-        if (mounted) context.go(target);
+        if (_isStillOnSplashRoute) context.go(target);
         return;
       }
 
       final localStorage = await LocalStorageService.init();
       final isFirstTime = localStorage.getIsFirstTime();
 
-      if (!mounted) return;
+      if (!_isStillOnSplashRoute) return;
 
       if (isFirstTime) {
-        if (mounted) context.go('/onboarding');
+        context.go('/onboarding');
       } else {
-        if (mounted) context.go('/login');
+        context.go('/login');
       }
     } catch (e) {
       // Fallback in case of error
-      if (mounted) context.go('/login');
+      if (_isStillOnSplashRoute) context.go('/login');
     }
   }
 
@@ -113,7 +126,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: colorScheme.onPrimary,
                           borderRadius: BorderRadius.circular(24),
                           boxShadow: [
                             BoxShadow(
@@ -134,7 +147,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                         'AutoEase',
                         style:
                             Theme.of(context).textTheme.displaySmall?.copyWith(
-                                  color: Colors.white,
+                                  color: colorScheme.onPrimary,
                                   fontWeight: FontWeight.bold,
                                   letterSpacing: 1.2,
                                 ),
@@ -143,7 +156,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                       Text(
                         'Premium Car Service',
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              color: Colors.white.withValues(alpha: 0.8),
+                              color:
+                                  colorScheme.onPrimary.withValues(alpha: 0.8),
                               letterSpacing: 2,
                             ),
                       ),

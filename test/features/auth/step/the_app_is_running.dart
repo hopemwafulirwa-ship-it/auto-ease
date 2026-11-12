@@ -8,67 +8,30 @@ import 'package:auto_ease/src/features/auth/domain/app_user.dart';
 import 'package:auto_ease/src/features/auth/presentation/login_screen.dart';
 import 'package:auto_ease/src/features/auth/presentation/register_screen.dart';
 
-class TestFakeAuthRepository implements AuthRepository {
-  final _controller = StreamController<AppUser?>.broadcast();
-  AppUser? _currentUser;
-
-  @override
-  AppUser? get currentUser => _currentUser;
-
-  @override
-  Stream<AppUser?> authStateChanges() => _controller.stream;
-
-  @override
-  Future<void> signInWithEmailAndPassword(String email, String password) async {
-    _currentUser = AppUser(
-      uid: 'test-uid-123',
-      email: email,
-      name: 'Test User',
-      role: AppUserRole.customer,
-    );
-    _controller.add(_currentUser);
-  }
-
-  @override
-  Future<void> signUpWithEmailAndPassword({
-    required String email,
-    required String password,
-    String? name,
-    AppUserRole role = AppUserRole.customer,
-  }) async {
-    _currentUser = AppUser(
-      uid: 'test-uid-123',
-      email: email,
-      name: name,
-      role: role,
-    );
-    _controller.add(_currentUser);
-  }
-
-  @override
-  Future<AppUser?> fetchUserProfile(String id) async => _currentUser;
-
-  @override
-  Future<void> signOut() async {
-    _currentUser = null;
-    _controller.add(null);
-  }
-}
+import '../../../helpers/fake_auth_repository.dart';
 
 Future<void> pumpAuthTestApp(
   WidgetTester tester, {
   required String initialLocation,
 }) async {
-  final fakeRepo = TestFakeAuthRepository();
+  final fakeRepo = FakeAuthRepository();
+  final refreshListenable =
+      _StreamRefreshListenable(fakeRepo.authStateChanges());
   final router = GoRouter(
     initialLocation: initialLocation,
-    refreshListenable: _StreamRefreshListenable(fakeRepo.authStateChanges()),
+    refreshListenable: refreshListenable,
     redirect: (context, state) {
-      final isLoggedIn = fakeRepo.currentUser != null;
+      final currentUser = fakeRepo.currentUser;
+      final isLoggedIn = currentUser != null;
       final isAuth = state.matchedLocation == '/login' ||
           state.matchedLocation == '/register';
+      if (!isLoggedIn && !isAuth) {
+        return '/login';
+      }
       if (isLoggedIn && isAuth) {
-        return '/home';
+        return currentUser.role == AppUserRole.mechanic
+            ? '/mechanic/home'
+            : '/home';
       }
       return null;
     },
@@ -87,8 +50,20 @@ Future<void> pumpAuthTestApp(
           body: Center(child: Text('AutoEase Home')),
         ),
       ),
+      GoRoute(
+        path: '/mechanic/home',
+        builder: (context, state) => const Scaffold(
+          body: Center(child: Text('Mechanic Dashboard')),
+        ),
+      ),
     ],
   );
+
+  addTearDown(() {
+    refreshListenable.dispose();
+    router.dispose();
+    fakeRepo.dispose();
+  });
 
   await tester.pumpWidget(
     ProviderScope(

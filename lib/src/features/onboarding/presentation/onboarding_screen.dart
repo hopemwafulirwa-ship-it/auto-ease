@@ -12,6 +12,7 @@ class OnboardingScreen extends StatefulWidget {
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
+  bool _isSubmitting = false;
 
   final List<_OnboardingPageData> _pages = [
     _OnboardingPageData(
@@ -41,12 +42,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Future<void> _onNext() async {
+    if (_isSubmitting) return;
     if (_currentPage < _pages.length - 1) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
       );
     } else {
+      setState(() => _isSubmitting = true);
       try {
         final localStorage = await LocalStorageService.init();
         await localStorage.setFirstTime(false);
@@ -144,7 +147,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   ),
                   // Next/Get Started Button
                   FilledButton(
-                    onPressed: _onNext,
+                    onPressed: _isSubmitting ? null : _onNext,
                     style: FilledButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 24,

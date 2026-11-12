@@ -46,15 +46,24 @@ class GoRouterRefreshStream extends ChangeNotifier {
   }
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 GoRouter goRouter(Ref ref) {
   final authRepository = ref.watch(authRepositoryProvider);
-  return GoRouter(
+  final refreshListenable =
+      GoRouterRefreshStream(authRepository.authStateChanges());
+  ref.onDispose(refreshListenable.dispose);
+
+  final router = GoRouter(
     initialLocation: '/',
     debugLogDiagnostics: true,
-    refreshListenable: GoRouterRefreshStream(authRepository.authStateChanges()),
+    refreshListenable: refreshListenable,
     redirect: (context, state) {
-      final currentUser = authRepository.currentUser;
+      AppUser? currentUser;
+      try {
+        currentUser = authRepository.currentUser;
+      } catch (e) {
+        debugPrint('Error reading currentUser in redirect: $e');
+      }
       final isLoggedIn = currentUser != null;
       final isAuthRoute = state.matchedLocation == '/login' ||
           state.matchedLocation == '/register' ||
@@ -75,6 +84,16 @@ GoRouter goRouter(Ref ref) {
         return currentUser.role == AppUserRole.mechanic
             ? '/mechanic/home'
             : '/home';
+      }
+
+      // Cross-role isolation between /home and /mechanic/* routes
+      if (state.matchedLocation.startsWith('/mechanic') &&
+          currentUser.role != AppUserRole.mechanic) {
+        return '/home';
+      }
+      if (state.matchedLocation == '/home' &&
+          currentUser.role == AppUserRole.mechanic) {
+        return '/mechanic/home';
       }
 
       return null;
@@ -171,4 +190,6 @@ GoRouter goRouter(Ref ref) {
       ),
     ],
   );
+  ref.onDispose(router.dispose);
+  return router;
 }

@@ -1,8 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:auto_ease/src/features/auth/presentation/login_screen.dart';
+import 'package:auto_ease/src/features/auth/presentation/register_screen.dart';
 
 /// Usage: I should see the home screen
 Future<void> iShouldSeeTheHomeScreen(WidgetTester tester) async {
-  // Check for common home screen elements - adjust based on actual home screen implementation
-  final homeIndicator = find.textContaining('AutoEase');
-  expect(homeIndicator, findsWidgets);
+  expect(find.byType(LoginScreen), findsNothing);
+  expect(find.byType(RegisterScreen), findsNothing);
+  expect(find.textContaining('AutoEase Home'), findsOneWidget);
 }

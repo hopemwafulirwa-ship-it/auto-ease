@@ -150,7 +150,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       textInputAction: TextInputAction.next,
                       enabled: !state.isLoading,
                       validator: (value) {
-                        if (value == null || value.isEmpty) return 'Please enter your name';
+                        if (value == null || value.trim().isEmpty) return 'Please enter your name';
                         return null;
                       },
                     ).animate().fadeIn(delay: 400.ms).slideX(begin: -0.1),
@@ -174,8 +174,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       textInputAction: TextInputAction.next,
                       enabled: !state.isLoading,
                       validator: (value) {
-                        if (value == null || value.isEmpty) return 'Please enter your email';
-                        if (!value.contains('@')) return 'Please enter a valid email';
+                        if (value == null || value.trim().isEmpty) return 'Please enter your email';
+                        if (!value.trim().contains('@')) return 'Please enter a valid email';
                         return null;
                       },
                     ).animate().fadeIn(delay: 500.ms).slideX(begin: -0.1),
@@ -327,8 +327,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           'Already have an account? ',
                           style: theme.textTheme.bodyMedium,
                         ),
-                        GestureDetector(
-                          onTap: state.isLoading ? null : () => context.go('/login'),
+                        TextButton(
+                          onPressed: state.isLoading ? null : () => context.go('/login'),
+                          style: TextButton.styleFrom(
+                            minimumSize: const Size(48, 48),
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                          ),
                           child: Text(
                             'Login',
                             style: TextStyle(

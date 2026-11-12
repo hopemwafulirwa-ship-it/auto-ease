@@ -57,9 +57,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         ),
       );
 
-      // Auto-dismiss after showing success
+      // Auto-dismiss after showing success if still the active route
+      final route = ModalRoute.of(context);
       Future.delayed(const Duration(seconds: 2), () {
-        if (mounted) {
+        if (mounted && (route?.isCurrent ?? false)) {
           Navigator.of(context).pop();
         }
       });

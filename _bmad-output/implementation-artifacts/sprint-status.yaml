@@ -1,5 +1,5 @@
 # generated: 2026-07-31T09:05:30+02:00
-# last_updated: 2026-07-31T09:07:20+02:00
+# last_updated: 2026-11-08T22:51:00+02:00
 # project: auto-ease
 # project_key: NOKEY
 # tracking_system: file-system
@@ -41,7 +41,7 @@
 # - Retrospective appends its action items to action_items; sprint-status surfaces open ones
 
 generated: 2026-07-31T09:05:30+02:00
-last_updated: 2026-07-31T09:07:20+02:00
+last_updated: 2026-11-08T22:51:00+02:00
 project: auto-ease
 project_key: NOKEY
 tracking_system: file-system
@@ -50,7 +50,7 @@ story_location: _bmad-output/implementation-artifacts
 development_status:
   epic-1: in-progress
   1-1-user-onboarding-multi-role-registration-supabase-auth-integration: done
-  1-2-user-profile-editing-role-based-supabase-rls-security-policy: backlog
+  1-2-user-profile-editing-role-based-supabase-rls-security-policy: ready-for-dev
   1-3-vehicle-profile-management-with-soft-deletion-archival-offline-caching: backlog
   epic-1-retrospective: optional
 

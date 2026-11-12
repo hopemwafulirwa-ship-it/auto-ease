@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,55 +5,18 @@ import 'package:auto_ease/src/features/auth/data/auth_repository.dart';
 import 'package:auto_ease/src/features/auth/domain/app_user.dart';
 import 'package:auto_ease/src/features/auth/presentation/register_screen.dart';
 
-class RecordingAuthRepository implements AuthRepository {
-  final _controller = StreamController<AppUser?>.broadcast();
-  AppUser? _currentUser;
-  bool shouldThrow = false;
-  String errorMessage = 'Registration failed';
-
-  String? recordedEmail;
-  String? recordedPassword;
-  String? recordedName;
-  AppUserRole? recordedRole;
-
-  @override
-  AppUser? get currentUser => _currentUser;
-
-  @override
-  Stream<AppUser?> authStateChanges() => _controller.stream;
-
-  @override
-  Future<void> signInWithEmailAndPassword(String email, String password) async {}
-
-  @override
-  Future<void> signUpWithEmailAndPassword({
-    required String email,
-    required String password,
-    String? name,
-    AppUserRole role = AppUserRole.customer,
-  }) async {
-    if (shouldThrow) {
-      throw Exception(errorMessage);
-    }
-    recordedEmail = email;
-    recordedPassword = password;
-    recordedName = name;
-    recordedRole = role;
-  }
-
-  @override
-  Future<AppUser?> fetchUserProfile(String id) async => _currentUser;
-
-  @override
-  Future<void> signOut() async {}
-}
+import '../helpers/fake_auth_repository.dart';
 
 void main() {
   group('RegisterScreen Widget Tests (Story 1.1)', () {
-    late RecordingAuthRepository fakeRepo;
+    late FakeAuthRepository fakeRepo;
 
     setUp(() {
-      fakeRepo = RecordingAuthRepository();
+      fakeRepo = FakeAuthRepository();
+    });
+
+    tearDown(() {
+      fakeRepo.dispose();
     });
 
     Widget buildSubject() {
@@ -128,16 +90,16 @@ void main() {
       await tester.tap(signUpButton);
       await tester.pumpAndSettle();
 
-      expect(fakeRepo.recordedName, 'Mike Mechanic');
-      expect(fakeRepo.recordedEmail, 'mike@garage.com');
-      expect(fakeRepo.recordedPassword, 'password123');
-      expect(fakeRepo.recordedRole, AppUserRole.mechanic);
+      expect(fakeRepo.lastSignUpName, 'Mike Mechanic');
+      expect(fakeRepo.lastSignUpEmail, 'mike@garage.com');
+      expect(fakeRepo.lastSignUpPassword, 'password123');
+      expect(fakeRepo.lastSignUpRole, AppUserRole.mechanic);
     });
 
     testWidgets('displays error SnackBar when registration fails',
         (tester) async {
-      fakeRepo.shouldThrow = true;
-      fakeRepo.errorMessage = 'An account with this email already exists';
+      fakeRepo.shouldFail = true;
+      fakeRepo.failureMessage = 'An account with this email already exists';
 
       await tester.pumpWidget(buildSubject());
       await tester.pumpAndSettle();
@@ -165,4 +127,3 @@ void main() {
     });
   });
 }
-

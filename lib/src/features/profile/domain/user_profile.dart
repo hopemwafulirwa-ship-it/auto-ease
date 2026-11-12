@@ -59,4 +59,32 @@ class UserProfile {
       'dark_mode_enabled': darkModeEnabled,
     };
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is UserProfile &&
+        other.id == id &&
+        other.name == name &&
+        other.email == email &&
+        other.phone == phone &&
+        other.avatarUrl == avatarUrl &&
+        other.notificationsEnabled == notificationsEnabled &&
+        other.darkModeEnabled == darkModeEnabled;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        id,
+        name,
+        email,
+        phone,
+        avatarUrl,
+        notificationsEnabled,
+        darkModeEnabled,
+      );
+
+  @override
+  String toString() =>
+      'UserProfile(id: $id, name: $name, email: $email, phone: $phone)';
 }

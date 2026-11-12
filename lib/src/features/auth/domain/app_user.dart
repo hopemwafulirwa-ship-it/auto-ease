@@ -18,10 +18,27 @@ class AppUser {
     required this.role,
   });
 
+  AppUser copyWith({
+    String? uid,
+    String? email,
+    String? name,
+    AppUserRole? role,
+  }) {
+    return AppUser(
+      uid: uid ?? this.uid,
+      email: email ?? this.email,
+      name: name ?? this.name,
+      role: role ?? this.role,
+    );
+  }
+
   factory AppUser.fromSupabaseUser(User user) {
     final roleValue = user.userMetadata?['role'] as String?;
-    final role = roleValue == 'mechanic' ? AppUserRole.mechanic : AppUserRole.customer;
-    final name = (user.userMetadata?['name'] ?? user.userMetadata?['full_name']) as String?;
+    final role = roleValue == 'mechanic'
+        ? AppUserRole.mechanic
+        : AppUserRole.customer;
+    final name = (user.userMetadata?['name'] ??
+        user.userMetadata?['full_name']) as String?;
 
     return AppUser(
       uid: user.id,
@@ -36,7 +53,9 @@ class AppUser {
       uid: json['id'] as String,
       email: json['email'] as String? ?? '',
       name: (json['full_name'] ?? json['name']) as String?,
-      role: (json['role'] as String?) == 'mechanic' ? AppUserRole.mechanic : AppUserRole.customer,
+      role: (json['role'] as String?) == 'mechanic'
+          ? AppUserRole.mechanic
+          : AppUserRole.customer,
     );
   }
 
@@ -64,5 +83,6 @@ class AppUser {
   int get hashCode => Object.hash(uid, email, name, role);
 
   @override
-  String toString() => 'AppUser(uid: $uid, email: $email, name: $name, role: $role)';
+  String toString() =>
+      'AppUser(uid: $uid, email: $email, name: $name, role: $role)';
 }
