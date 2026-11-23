@@ -25,6 +25,7 @@ import 'package:auto_ease/src/features/mechanic/presentation/mechanic_home_scree
 import 'package:auto_ease/src/features/mechanic/presentation/job_requests_screen.dart';
 import 'package:auto_ease/src/features/mechanic/presentation/job_details_screen.dart';
 import 'package:auto_ease/src/features/mechanic/presentation/earnings_screen.dart';
+import 'package:auto_ease/src/features/profile/application/profile_controller.dart';
 import 'package:auto_ease/src/features/profile/presentation/edit_profile_screen.dart';
 
 part 'app_router.g.dart';
@@ -39,6 +40,8 @@ class GoRouterRefreshStream extends ChangeNotifier {
 
   late final StreamSubscription<dynamic> _subscription;
 
+  void refresh() => notifyListeners();
+
   @override
   void dispose() {
     _subscription.cancel();
@@ -51,6 +54,17 @@ GoRouter goRouter(Ref ref) {
   final authRepository = ref.watch(authRepositoryProvider);
   final refreshListenable =
       GoRouterRefreshStream(authRepository.authStateChanges());
+  ref.listen<AppUserRole?>(
+    profileControllerProvider.select((asyncProfile) {
+      final profile = asyncProfile.valueOrNull;
+      return (profile != null && profile.id.isNotEmpty) ? profile.role : null;
+    }),
+    (previous, next) {
+      if (previous != next) {
+        refreshListenable.refresh();
+      }
+    },
+  );
   ref.onDispose(refreshListenable.dispose);
 
   final router = GoRouter(
@@ -79,20 +93,28 @@ GoRouter goRouter(Ref ref) {
         return '/login';
       }
 
+      // Authoritative role resolution: prefer RLS-verified public.profiles.role
+      // when loaded for the current user, falling back to currentUser.role on cold start.
+      final loadedProfile = ref.read(profileControllerProvider).valueOrNull;
+      final effectiveRole =
+          (loadedProfile != null && loadedProfile.id == currentUser.uid)
+              ? loadedProfile.role
+              : currentUser.role;
+
       // If logged in and trying to access auth routes, redirect to role-specific home
       if (isAuthRoute) {
-        return currentUser.role == AppUserRole.mechanic
+        return effectiveRole == AppUserRole.mechanic
             ? '/mechanic/home'
             : '/home';
       }
 
       // Cross-role isolation between /home and /mechanic/* routes
       if (state.matchedLocation.startsWith('/mechanic') &&
-          currentUser.role != AppUserRole.mechanic) {
+          effectiveRole != AppUserRole.mechanic) {
         return '/home';
       }
       if (state.matchedLocation == '/home' &&
-          currentUser.role == AppUserRole.mechanic) {
+          effectiveRole == AppUserRole.mechanic) {
         return '/mechanic/home';
       }
 

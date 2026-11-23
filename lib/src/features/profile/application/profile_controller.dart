@@ -1,4 +1,5 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:auto_ease/src/features/auth/data/auth_repository.dart';
 import 'package:auto_ease/src/features/auth/domain/app_user.dart';
 import 'package:auto_ease/src/features/profile/data/profile_repository.dart';
@@ -8,8 +9,11 @@ part 'profile_controller.g.dart';
 
 @riverpod
 class ProfileController extends _$ProfileController {
+  bool _isMutating = false;
+
   @override
   Stream<UserProfile> build() {
+    _isMutating = false;
     final authRepository = ref.watch(authRepositoryProvider);
     final uid = ref.watch(
       authStateChangesProvider.select((authAsync) {
@@ -42,17 +46,39 @@ class ProfileController extends _$ProfileController {
     return authAsync.valueOrNull ?? ref.read(authRepositoryProvider).currentUser;
   }
 
+  Future<void> _guardMutation(Future<UserProfile> Function() action) async {
+    if (_isMutating) return;
+    _isMutating = true;
+    final previousState = state;
+    state = const AsyncLoading<UserProfile>().copyWithPrevious(previousState);
+    try {
+      final updated = await action();
+      state = AsyncData<UserProfile>(updated);
+    } catch (e, st) {
+      state = AsyncError<UserProfile>(e, st).copyWithPrevious(previousState);
+    } finally {
+      _isMutating = false;
+    }
+  }
+
+  AppUser _requireAuthenticatedUser() {
+    final user = _currentUser;
+    if (user == null) {
+      throw const AuthException('User session expired. Please sign in again.');
+    }
+    return user;
+  }
+
   Future<void> updateProfile({
     String? name,
     String? email,
     String? phone,
     String? avatarUrl,
   }) async {
-    final user = _currentUser;
-    if (user == null) return;
+    final previousProfile = state.valueOrNull;
 
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
+    await _guardMutation(() async {
+      final user = _requireAuthenticatedUser();
       final updated = await ref.read(profileRepositoryProvider).updateProfile(
             uid: user.uid,
             name: name,
@@ -61,21 +87,34 @@ class ProfileController extends _$ProfileController {
             avatarUrl: avatarUrl,
           );
       if (name != null || avatarUrl != null) {
-        await ref.read(authRepositoryProvider).updateUserMetadata(
-              name: name,
-              avatarUrl: avatarUrl,
-            );
+        try {
+          await ref.read(authRepositoryProvider).updateUserMetadata(
+                name: name,
+                avatarUrl: avatarUrl,
+              );
+        } catch (e, st) {
+          if (previousProfile != null) {
+            try {
+              await ref.read(profileRepositoryProvider).updateProfile(
+                    uid: user.uid,
+                    name: previousProfile.name,
+                    avatarUrl: previousProfile.avatarUrl,
+                  );
+              await Future<void>.delayed(Duration.zero);
+            } catch (_) {
+              // Best-effort rollback if network dropped completely
+            }
+          }
+          Error.throwWithStackTrace(e, st);
+        }
       }
       return updated;
     });
   }
 
   Future<void> toggleNotifications(bool enabled) async {
-    final user = _currentUser;
-    if (user == null) return;
-
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
+    await _guardMutation(() async {
+      final user = _requireAuthenticatedUser();
       return await ref.read(profileRepositoryProvider).updateProfile(
             uid: user.uid,
             notificationsEnabled: enabled,
@@ -84,11 +123,8 @@ class ProfileController extends _$ProfileController {
   }
 
   Future<void> toggleDarkMode(bool enabled) async {
-    final user = _currentUser;
-    if (user == null) return;
-
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
+    await _guardMutation(() async {
+      final user = _requireAuthenticatedUser();
       return await ref.read(profileRepositoryProvider).updateProfile(
             uid: user.uid,
             darkModeEnabled: enabled,
@@ -97,23 +133,35 @@ class ProfileController extends _$ProfileController {
   }
 
   Future<void> updateRole(AppUserRole role) async {
-    final user = _currentUser;
-    if (user == null) return;
+    final previousProfileRole = state.valueOrNull?.role;
 
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
+    await _guardMutation(() async {
+      final user = _requireAuthenticatedUser();
+      final previousRole = previousProfileRole ?? user.role;
       final updated = await ref.read(profileRepositoryProvider).updateProfile(
             uid: user.uid,
             role: role,
           );
-      await ref.read(authRepositoryProvider).updateUserMetadata(role: role);
+      try {
+        await ref.read(authRepositoryProvider).updateUserMetadata(role: role);
+      } catch (e, st) {
+        try {
+          await ref.read(profileRepositoryProvider).updateProfile(
+                uid: user.uid,
+                role: previousRole,
+              );
+          await Future<void>.delayed(Duration.zero);
+        } catch (_) {
+          // Best-effort rollback if network dropped completely
+        }
+        Error.throwWithStackTrace(e, st);
+      }
       return updated;
     });
   }
 
   Future<void> logout() async {
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
+    await _guardMutation(() async {
       await ref.read(authRepositoryProvider).signOut();
       return const UserProfile(
         id: '',

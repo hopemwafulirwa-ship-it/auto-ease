@@ -107,6 +107,45 @@ void main() {
       expect(fakeAuthRepository.currentUser?.role, AppUserRole.mechanic);
     });
 
+    test(
+        'updateRole rolls back profile role and surfaces AsyncError when auth metadata sync fails',
+        () async {
+      await container.read(profileControllerProvider.future);
+      fakeAuthRepository.shouldFail = true;
+
+      await container
+          .read(profileControllerProvider.notifier)
+          .updateRole(AppUserRole.mechanic);
+
+      final state = container.read(profileControllerProvider);
+      expect(state.hasError, isTrue);
+      expect(state.valueOrNull?.role, AppUserRole.customer);
+      expect(
+        fakeProfileRepository.getProfile('test_user_001')?.role,
+        AppUserRole.customer,
+      );
+      expect(fakeAuthRepository.currentUser?.role, AppUserRole.customer);
+    });
+
+    test(
+        'updateProfile rolls back profile name and retains previous valueOrNull when auth metadata sync fails',
+        () async {
+      await container.read(profileControllerProvider.future);
+      fakeAuthRepository.shouldFail = true;
+
+      await container
+          .read(profileControllerProvider.notifier)
+          .updateProfile(name: 'Attempted Name Change');
+
+      final state = container.read(profileControllerProvider);
+      expect(state.hasError, isTrue);
+      expect(state.valueOrNull?.name, kTestUserProfile.name);
+      expect(
+        fakeProfileRepository.getProfile('test_user_001')?.name,
+        kTestUserProfile.name,
+      );
+    });
+
     test('toggleNotifications enables and disables notifications', () async {
       await container.read(profileControllerProvider.future);
 
@@ -160,6 +199,7 @@ void main() {
 
       final state = container.read(profileControllerProvider);
       expect(state.hasError, isTrue);
+      expect(state.valueOrNull, kTestUserProfile);
       expect(
         state.error,
         isA<PostgrestException>().having((e) => e.code, 'code', '42501'),
@@ -176,6 +216,21 @@ void main() {
       expect(fakeAuthRepository.currentUser, isNull);
       final profile = container.read(profileControllerProvider).requireValue;
       expect(profile.id, isEmpty);
+    });
+
+    test(
+        'updateProfile surfaces AuthException when session is expired (currentUser is null)',
+        () async {
+      await container.read(profileControllerProvider.future);
+      await fakeAuthRepository.signOut();
+
+      await container
+          .read(profileControllerProvider.notifier)
+          .updateProfile(name: 'Unauthenticated Edit');
+
+      final state = container.read(profileControllerProvider);
+      expect(state.hasError, isTrue);
+      expect(state.error, isA<AuthException>());
     });
   });
 }

@@ -249,6 +249,25 @@ void main() {
     });
 
     test(
+        'updateProfile normalizes PostgREST PGRST116 0-row .single() rejection into 42501 RLS exception',
+        () async {
+      fakeSupabase.profilesBuilder.customError = const PostgrestException(
+        message: 'JSON object requested, multiple (or no) rows returned',
+        code: 'PGRST116',
+      );
+
+      await expectLater(
+        repository.updateProfile(
+          uid: 'user_123',
+          name: 'Zero Row Rejection',
+        ),
+        throwsA(
+          isA<PostgrestException>().having((e) => e.code, 'code', '42501'),
+        ),
+      );
+    });
+
+    test(
         'watchProfile streams deserialized UserProfile when populated row is emitted',
         () async {
       fakeSupabase.profilesBuilder.streamToReturn = Stream.value([

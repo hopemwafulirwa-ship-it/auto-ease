@@ -53,14 +53,25 @@ class ProfileRepository {
       'updated_at': DateTime.now().toUtc().toIso8601String(),
     };
 
-    final data = await _supabase
-        .from('profiles')
-        .update(updates)
-        .eq('id', uid)
-        .select()
-        .single();
+    try {
+      final data = await _supabase
+          .from('profiles')
+          .update(updates)
+          .eq('id', uid)
+          .select()
+          .single();
 
-    return UserProfile.fromJson(data);
+      return UserProfile.fromJson(data);
+    } on PostgrestException catch (e) {
+      if (e.code == 'PGRST116') {
+        throw const PostgrestException(
+          message:
+              'new row violates row-level security policy for table "profiles"',
+          code: '42501',
+        );
+      }
+      rethrow;
+    }
   }
 }
 

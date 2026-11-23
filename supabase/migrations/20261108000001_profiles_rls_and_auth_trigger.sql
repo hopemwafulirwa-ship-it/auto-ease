@@ -64,16 +64,33 @@ AS $$
 DECLARE
   v_role text;
   v_name text;
+  v_avatar text;
 BEGIN
   v_role := COALESCE(NEW.raw_user_meta_data->>'role', 'customer');
   IF v_role NOT IN ('customer', 'mechanic') THEN
     v_role := 'customer';
   END IF;
 
-  v_name := COALESCE(
-    NEW.raw_user_meta_data->>'full_name',
-    NEW.raw_user_meta_data->>'name'
+  v_name := LEFT(
+    NULLIF(
+      TRIM(
+        COALESCE(
+          NEW.raw_user_meta_data->>'full_name',
+          NEW.raw_user_meta_data->>'name',
+          ''
+        )
+      ),
+      ''
+    ),
+    120
   );
+
+  v_avatar := NULLIF(TRIM(COALESCE(NEW.raw_user_meta_data->>'avatar_url', '')), '');
+  IF v_avatar IS NOT NULL AND v_avatar !~ '^https?://' THEN
+    v_avatar := NULL;
+  ELSE
+    v_avatar := LEFT(v_avatar, 2048);
+  END IF;
 
   INSERT INTO public.profiles (id, email, name, full_name, role, avatar_url)
   VALUES (
@@ -82,7 +99,7 @@ BEGIN
     v_name,
     v_name,
     v_role,
-    NEW.raw_user_meta_data->>'avatar_url'
+    v_avatar
   )
   ON CONFLICT (id) DO UPDATE
   SET
@@ -97,8 +114,49 @@ BEGIN
 END;
 $$;
 
+REVOKE ALL ON FUNCTION public.handle_new_user() FROM PUBLIC, anon, authenticated;
+
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW
   EXECUTE FUNCTION public.handle_new_user();
+
+-- Atomically synchronize public.profiles mutations back to auth.users.raw_user_meta_data
+CREATE OR REPLACE FUNCTION public.sync_profile_to_auth_user()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_name text;
+BEGIN
+  v_name := COALESCE(NEW.full_name, NEW.name);
+
+  UPDATE auth.users
+  SET raw_user_meta_data = COALESCE(raw_user_meta_data, '{}'::jsonb) || jsonb_build_object(
+    'role', NEW.role,
+    'name', v_name,
+    'full_name', v_name,
+    'avatar_url', NEW.avatar_url
+  )
+  WHERE id = NEW.id;
+
+  RETURN NEW;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.sync_profile_to_auth_user() FROM PUBLIC, anon, authenticated;
+
+DROP TRIGGER IF EXISTS on_profile_updated_sync_auth ON public.profiles;
+CREATE TRIGGER on_profile_updated_sync_auth
+  AFTER UPDATE OF role, name, full_name, avatar_url ON public.profiles
+  FOR EACH ROW
+  WHEN (
+    OLD.role IS DISTINCT FROM NEW.role OR
+    OLD.name IS DISTINCT FROM NEW.name OR
+    OLD.full_name IS DISTINCT FROM NEW.full_name OR
+    OLD.avatar_url IS DISTINCT FROM NEW.avatar_url
+  )
+  EXECUTE FUNCTION public.sync_profile_to_auth_user();

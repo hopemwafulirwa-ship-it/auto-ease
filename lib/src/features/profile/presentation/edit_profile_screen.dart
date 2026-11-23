@@ -43,17 +43,35 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
   Future<void> _showAvatarUrlDialog() async {
     final urlController = TextEditingController(text: _avatarUrl ?? '');
+    final dialogFormKey = GlobalKey<FormState>();
     final newUrl = await showDialog<String>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Update Avatar URL'),
-        content: TextField(
-          controller: urlController,
-          decoration: const InputDecoration(
-            labelText: 'Avatar URL',
-            hintText: 'https://example.com/avatar.png',
+        content: Form(
+          key: dialogFormKey,
+          child: TextFormField(
+            controller: urlController,
+            decoration: const InputDecoration(
+              labelText: 'Avatar URL',
+              hintText: 'https://example.com/avatar.png',
+            ),
+            keyboardType: TextInputType.url,
+            validator: (value) {
+              final trimmed = value?.trim() ?? '';
+              if (trimmed.isEmpty) {
+                return null;
+              }
+              final uri = Uri.tryParse(trimmed);
+              if (uri == null ||
+                  !uri.hasScheme ||
+                  (uri.scheme != 'https' && uri.scheme != 'http') ||
+                  uri.host.isEmpty) {
+                return 'Please enter a valid HTTP/HTTPS URL';
+              }
+              return null;
+            },
           ),
-          keyboardType: TextInputType.url,
         ),
         actions: [
           TextButton(
@@ -61,8 +79,11 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
             child: const Text('Cancel'),
           ),
           FilledButton(
-            onPressed: () =>
-                Navigator.pop(dialogContext, urlController.text.trim()),
+            onPressed: () {
+              if (dialogFormKey.currentState!.validate()) {
+                Navigator.pop(dialogContext, urlController.text.trim());
+              }
+            },
             child: const Text('Apply'),
           ),
         ],
