@@ -1,7 +1,8 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:auto_ease/src/features/profile/domain/user_profile.dart';
-import 'package:auto_ease/src/common/supabase_client_provider.dart';
 import 'package:auto_ease/src/features/auth/data/auth_repository.dart';
+import 'package:auto_ease/src/features/auth/domain/app_user.dart';
+import 'package:auto_ease/src/features/profile/data/profile_repository.dart';
+import 'package:auto_ease/src/features/profile/domain/user_profile.dart';
 
 part 'profile_controller.g.dart';
 
@@ -9,25 +10,36 @@ part 'profile_controller.g.dart';
 class ProfileController extends _$ProfileController {
   @override
   Stream<UserProfile> build() {
-    final supabase = ref.watch(supabaseClientProvider);
-    final user = ref.watch(authRepositoryProvider).currentUser;
-    
-    if (user == null) {
-      return Stream.value(const UserProfile(
-        id: '',
-        name: '',
-        email: '',
-        phone: '',
-      ));
+    final authRepository = ref.watch(authRepositoryProvider);
+    final uid = ref.watch(
+      authStateChangesProvider.select((authAsync) {
+        final user = authAsync.valueOrNull ??
+            (authAsync.isLoading ? authRepository.currentUser : null);
+        return user?.uid;
+      }),
+    );
+
+    final authAsync = ref.read(authStateChangesProvider);
+    final user = authAsync.valueOrNull ??
+        (authAsync.isLoading ? authRepository.currentUser : null);
+
+    if (uid == null || user == null) {
+      return Stream.value(
+        const UserProfile(
+          id: '',
+          name: '',
+          email: '',
+          phone: '',
+        ),
+      );
     }
 
-    return supabase
-        .from('profiles')
-        .stream(primaryKey: ['id'])
-        .eq('id', user.uid)
-        .map((data) => data.isEmpty 
-            ? UserProfile(id: user.uid, name: user.name ?? '', email: user.email, phone: '')
-            : UserProfile.fromJson(data.first));
+    return ref.watch(profileRepositoryProvider).watchProfile(user);
+  }
+
+  AppUser? get _currentUser {
+    final authAsync = ref.read(authStateChangesProvider);
+    return authAsync.valueOrNull ?? ref.read(authRepositoryProvider).currentUser;
   }
 
   Future<void> updateProfile({
@@ -36,43 +48,79 @@ class ProfileController extends _$ProfileController {
     String? phone,
     String? avatarUrl,
   }) async {
-    final supabase = ref.read(supabaseClientProvider);
-    final user = ref.read(authRepositoryProvider).currentUser;
+    final user = _currentUser;
     if (user == null) return;
 
-    final updates = {
-      if (name != null) 'full_name': name,
-      if (email != null) 'email': email,
-      if (phone != null) 'phone': phone,
-      if (avatarUrl != null) 'avatar_url': avatarUrl,
-    };
-
-    await supabase.from('profiles').update(updates).eq('id', user.uid);
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      final updated = await ref.read(profileRepositoryProvider).updateProfile(
+            uid: user.uid,
+            name: name,
+            email: email,
+            phone: phone,
+            avatarUrl: avatarUrl,
+          );
+      if (name != null || avatarUrl != null) {
+        await ref.read(authRepositoryProvider).updateUserMetadata(
+              name: name,
+              avatarUrl: avatarUrl,
+            );
+      }
+      return updated;
+    });
   }
 
   Future<void> toggleNotifications(bool enabled) async {
-    final supabase = ref.read(supabaseClientProvider);
-    final user = ref.read(authRepositoryProvider).currentUser;
+    final user = _currentUser;
     if (user == null) return;
 
-    await supabase
-        .from('profiles')
-        .update({'notifications_enabled': enabled})
-        .eq('id', user.uid);
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      return await ref.read(profileRepositoryProvider).updateProfile(
+            uid: user.uid,
+            notificationsEnabled: enabled,
+          );
+    });
   }
 
   Future<void> toggleDarkMode(bool enabled) async {
-    final supabase = ref.read(supabaseClientProvider);
-    final user = ref.read(authRepositoryProvider).currentUser;
+    final user = _currentUser;
     if (user == null) return;
 
-    await supabase
-        .from('profiles')
-        .update({'dark_mode_enabled': enabled})
-        .eq('id', user.uid);
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      return await ref.read(profileRepositoryProvider).updateProfile(
+            uid: user.uid,
+            darkModeEnabled: enabled,
+          );
+    });
+  }
+
+  Future<void> updateRole(AppUserRole role) async {
+    final user = _currentUser;
+    if (user == null) return;
+
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      final updated = await ref.read(profileRepositoryProvider).updateProfile(
+            uid: user.uid,
+            role: role,
+          );
+      await ref.read(authRepositoryProvider).updateUserMetadata(role: role);
+      return updated;
+    });
   }
 
   Future<void> logout() async {
-    await ref.read(authRepositoryProvider).signOut();
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      await ref.read(authRepositoryProvider).signOut();
+      return const UserProfile(
+        id: '',
+        name: '',
+        email: '',
+        phone: '',
+      );
+    });
   }
 }

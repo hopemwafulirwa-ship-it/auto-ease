@@ -46,12 +46,31 @@ class _FakeSupabaseQueryBuilder extends Fake implements SupabaseQueryBuilder {
 class _FakeGoTrueClient extends Fake implements GoTrueClient {
   Object? errorToThrow;
   AuthResponse responseToReturn = AuthResponse();
+  UserAttributes? lastUpdatedAttributes;
   bool signOutCalled = false;
   final StreamController<AuthState> authStateController =
       StreamController<AuthState>.broadcast();
 
   @override
   Stream<AuthState> get onAuthStateChange => authStateController.stream;
+
+  @override
+  Future<UserResponse> updateUser(
+    UserAttributes attributes, {
+    String? emailRedirectTo,
+  }) async {
+    if (errorToThrow != null) {
+      throw errorToThrow!;
+    }
+    lastUpdatedAttributes = attributes;
+    return UserResponse.fromJson({
+      'id': 'user-123',
+      'app_metadata': <String, dynamic>{},
+      'user_metadata': attributes.data ?? <String, dynamic>{},
+      'aud': 'authenticated',
+      'created_at': '2026-01-01T00:00:00Z',
+    });
+  }
 
   @override
   Future<AuthResponse> signUp({
@@ -169,7 +188,8 @@ void main() {
       expect(serialized['role'], 'mechanic');
     });
 
-    test('UserProfile.fromJson accepts either full_name or name and supports ==',
+    test(
+        'UserProfile.fromJson accepts either full_name or name and supports ==',
         () {
       final fromNameKey = UserProfile.fromJson({
         'id': 'u1',
@@ -280,7 +300,8 @@ void main() {
       expect(fakeSupabase._auth.signOutCalled, isTrue);
     });
 
-    test('authStateChanges deduplicates identical user emissions on tokenRefreshed',
+    test(
+        'authStateChanges deduplicates identical user emissions on tokenRefreshed',
         () async {
       const user = User(
         id: 'u-1',
@@ -310,7 +331,7 @@ void main() {
       fakeSupabase._auth.authStateController
           .add(AuthState(AuthChangeEvent.tokenRefreshed, refreshedSession));
       fakeSupabase._auth.authStateController
-          .add(AuthState(AuthChangeEvent.signedOut, null));
+          .add(const AuthState(AuthChangeEvent.signedOut, null));
       await Future<void>.delayed(Duration.zero);
 
       expect(emissions.length, 2);
@@ -385,6 +406,23 @@ void main() {
           ),
         ),
       );
+    });
+
+    test(
+        'updateUserMetadata synchronizes name, full_name, role, and avatar_url in Supabase Auth',
+        () async {
+      await repository.updateUserMetadata(
+        name: 'Jane Mechanic',
+        role: AppUserRole.mechanic,
+        avatarUrl: 'https://example.com/jane.png',
+      );
+
+      expect(fakeSupabase._auth.lastUpdatedAttributes?.data, {
+        'name': 'Jane Mechanic',
+        'full_name': 'Jane Mechanic',
+        'role': 'mechanic',
+        'avatar_url': 'https://example.com/jane.png',
+      });
     });
   });
 }

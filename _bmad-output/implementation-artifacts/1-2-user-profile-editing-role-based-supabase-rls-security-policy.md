@@ -1,6 +1,13 @@
+---
+status: done
+baseline_commit: d5d7a3ed15fbcfa7ea2630d6c132d94aeeb54b4d
+context:
+  - _bmad-output/project-context.md
+---
+
 # Story 1.2: User Profile Editing & Role-Based Supabase RLS Security Policy
 
-Status: ready-for-dev
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -40,54 +47,54 @@ so that my profile remains up to date while enforcing strict data isolation so o
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Supabase SQL Migration for `profiles` Table, Auth Trigger & RLS Policies (AC: 1, 2, 3)
-  - [ ] Create `supabase/migrations/20261108000001_profiles_rls_and_auth_trigger.sql` using idempotent SQL (`CREATE TABLE IF NOT EXISTS public.profiles`, `ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY`, `DROP POLICY IF EXISTS ...; CREATE POLICY ...`).
-  - [ ] Define `public.profiles` columns: `id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE`, `email text NOT NULL DEFAULT ''`, `name text`, `full_name text`, `phone text NOT NULL DEFAULT ''`, `avatar_url text`, `role text NOT NULL DEFAULT 'customer' CHECK (role IN ('customer', 'mechanic'))`, `notifications_enabled boolean NOT NULL DEFAULT true`, `dark_mode_enabled boolean NOT NULL DEFAULT false`, `created_at timestamptz NOT NULL DEFAULT now()`, `updated_at timestamptz NOT NULL DEFAULT now()`.
-  - [ ] Create `public.handle_new_user()` trigger function with `SECURITY DEFINER SET search_path = public` and attach `AFTER INSERT ON auth.users` trigger to seed `public.profiles` from `NEW.raw_user_meta_data`.
-  - [ ] Define RLS policies: `profiles_select_authenticated` (`FOR SELECT TO authenticated USING (true)` to support own-profile reads, mechanic discovery, and `ChatRepository.fetchChatRoom` participant joins), `profiles_insert_own` (`FOR INSERT TO authenticated WITH CHECK (auth.uid() = id)`), and `profiles_update_own` (`FOR UPDATE TO authenticated USING (auth.uid() = id) WITH CHECK (auth.uid() = id)`).
+- [x] Task 1: Supabase SQL Migration for `profiles` Table, Auth Trigger & RLS Policies (AC: 1, 2, 3)
+  - [x] Create `supabase/migrations/20261108000001_profiles_rls_and_auth_trigger.sql` using idempotent SQL (`CREATE TABLE IF NOT EXISTS public.profiles`, `ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY`, `DROP POLICY IF EXISTS ...; CREATE POLICY ...`).
+  - [x] Define `public.profiles` columns: `id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE`, `email text NOT NULL DEFAULT ''`, `name text`, `full_name text`, `phone text NOT NULL DEFAULT ''`, `avatar_url text`, `role text NOT NULL DEFAULT 'customer' CHECK (role IN ('customer', 'mechanic'))`, `notifications_enabled boolean NOT NULL DEFAULT true`, `dark_mode_enabled boolean NOT NULL DEFAULT false`, `created_at timestamptz NOT NULL DEFAULT now()`, `updated_at timestamptz NOT NULL DEFAULT now()`.
+  - [x] Create `public.handle_new_user()` trigger function with `SECURITY DEFINER SET search_path = public` and attach `AFTER INSERT ON auth.users` trigger to seed `public.profiles` from `NEW.raw_user_meta_data`.
+  - [x] Define RLS policies: `profiles_select_authenticated` (`FOR SELECT TO authenticated USING (true)` to support own-profile reads, mechanic discovery, and `ChatRepository.fetchChatRoom` participant joins), `profiles_insert_own` (`FOR INSERT TO authenticated WITH CHECK (auth.uid() = id)`), and `profiles_update_own` (`FOR UPDATE TO authenticated USING (auth.uid() = id) WITH CHECK (auth.uid() = id)`).
 
-- [ ] Task 2: Extend `UserProfile` Domain Model with Role & Value Equality (AC: 1, 2)
-  - [ ] Update `lib/src/features/profile/domain/user_profile.dart` to import `AppUserRole` from `package:auto_ease/src/features/auth/domain/app_user.dart` and add `final AppUserRole role` (defaulting to `AppUserRole.customer`).
-  - [ ] Update `copyWith`, `fromJson` (deserialize `role` via `AppUserRole.values.firstWhere((e) => e.name == json['role'], orElse: () => AppUserRole.customer)`), and `toJson` (include `'name': name`, `'full_name': name`, and `'role': role.name`).
-  - [ ] Implement `operator ==`, `hashCode` (`Object.hash(...)`), and `toString()` on `UserProfile`.
+- [x] Task 2: Extend `UserProfile` Domain Model with Role & Value Equality (AC: 1, 2)
+  - [x] Update `lib/src/features/profile/domain/user_profile.dart` to import `AppUserRole` from `package:auto_ease/src/features/auth/domain/app_user.dart` and add `final AppUserRole role` (defaulting to `AppUserRole.customer`).
+  - [x] Update `copyWith`, `fromJson` (deserialize `role` via `AppUserRole.values.firstWhere((e) => e.name == json['role'], orElse: () => AppUserRole.customer)`), and `toJson` (include `'name': name`, `'full_name': name`, and `'role': role.name`).
+  - [x] Implement `operator ==`, `hashCode` (`Object.hash(...)`), and `toString()` on `UserProfile`.
 
-- [ ] Task 3: Extract `ProfileRepository` & Synchronize Auth Role Metadata (AC: 1, 2, 3)
-  - [ ] Create `lib/src/features/profile/data/profile_repository.dart` (with `part 'profile_repository.g.dart';` and `@Riverpod(keepAlive: true) ProfileRepository profileRepository(Ref ref)`), moving all direct `supabase.from('profiles')` calls out of `ProfileController` to comply with the strict Repository Boundary rule.
-  - [ ] Implement `Stream<UserProfile> watchProfile(AppUser user)` using `.from('profiles').stream(primaryKey: ['id']).eq('id', user.uid)`.
-  - [ ] Implement `Future<UserProfile> updateProfile({required String uid, String? name, String? email, String? phone, String? avatarUrl, bool? notificationsEnabled, bool? darkModeEnabled, AppUserRole? role})` chaining `.update(updates).eq('id', uid).select().single()` so 0-row RLS rejections surface as errors.
-  - [ ] Update `lib/src/features/auth/data/auth_repository.dart`:
+- [x] Task 3: Extract `ProfileRepository` & Synchronize Auth Role Metadata (AC: 1, 2, 3)
+  - [x] Create `lib/src/features/profile/data/profile_repository.dart` (with `part 'profile_repository.g.dart';` and `@Riverpod(keepAlive: true) ProfileRepository profileRepository(Ref ref)`), moving all direct `supabase.from('profiles')` calls out of `ProfileController` to comply with the strict Repository Boundary rule.
+  - [x] Implement `Stream<UserProfile> watchProfile(AppUser user)` using `.from('profiles').stream(primaryKey: ['id']).eq('id', user.uid)`.
+  - [x] Implement `Future<UserProfile> updateProfile({required String uid, String? name, String? email, String? phone, String? avatarUrl, bool? notificationsEnabled, bool? darkModeEnabled, AppUserRole? role})` chaining `.update(updates).eq('id', uid).select().single()` so 0-row RLS rejections surface as errors.
+  - [x] Update `lib/src/features/auth/data/auth_repository.dart`:
     - Chain `.distinct()` on `authStateChanges()` to prevent background JWT `tokenRefreshed` events from tearing down Realtime streams or firing redundant router redirects.
     - Add `Future<void> updateUserMetadata({String? name, AppUserRole? role, String? avatarUrl})` calling `_supabase.auth.updateUser(UserAttributes(data: ...))` so `AppUser.fromSupabaseUser` stays in sync when profile name, avatar, or role is updated.
 
-- [ ] Task 4: Refactor `ProfileController` for Auth Reactivity, Role Switching & Error Propagation (AC: 1, 2, 4)
-  - [ ] Update `lib/src/features/profile/application/profile_controller.dart` to watch `authStateChangesProvider` with cold-start fallback (`authAsync.valueOrNull ?? (authAsync.isLoading ? ref.read(authRepositoryProvider).currentUser : null)`) and delegate data streaming/mutations to `profileRepositoryProvider` and `authRepositoryProvider`.
-  - [ ] Ensure `updateProfile`, `toggleNotifications`, `toggleDarkMode`, `updateRole(AppUserRole role)`, and `logout()` properly update `state` (`AsyncValue.guard` / optimistic or stream-backed state) and propagate errors when RLS or network failures occur.
-  - [ ] Run `dart run build_runner build --delete-conflicting-outputs` to regenerate `profile_repository.g.dart` and `profile_controller.g.dart`.
+- [x] Task 4: Refactor `ProfileController` for Auth Reactivity, Role Switching & Error Propagation (AC: 1, 2, 4)
+  - [x] Update `lib/src/features/profile/application/profile_controller.dart` to watch `authStateChangesProvider` with cold-start fallback (`authAsync.valueOrNull ?? (authAsync.isLoading ? ref.read(authRepositoryProvider).currentUser : null)`) and delegate data streaming/mutations to `profileRepositoryProvider` and `authRepositoryProvider`.
+  - [x] Ensure `updateProfile`, `toggleNotifications`, `toggleDarkMode`, `updateRole(AppUserRole role)`, and `logout()` properly update `state` (`AsyncValue.guard` / optimistic or stream-backed state) and propagate errors when RLS or network failures occur.
+  - [x] Run `dart run build_runner build --delete-conflicting-outputs` to regenerate `profile_repository.g.dart` and `profile_controller.g.dart`.
 
-- [ ] Task 5: Upgrade `ProfileScreen`, `EditProfileScreen`, `MechanicHomeScreen`, `RoleSelectionScreen`, `app_router.dart`, and `main.dart` (AC: 1, 2, 4)
-  - [ ] In `lib/src/features/profile/presentation/edit_profile_screen.dart`:
+- [x] Task 5: Upgrade `ProfileScreen`, `EditProfileScreen`, `MechanicHomeScreen`, `RoleSelectionScreen`, `app_router.dart`, and `main.dart` (AC: 1, 2, 4)
+  - [x] In `lib/src/features/profile/presentation/edit_profile_screen.dart`:
     - Make `_saveProfile()` `async`, await `updateProfile(...)`, guard `BuildContext` with `if (!mounted) return;`, show error via `AsyncValueUI` without popping on failure, and only `context.pop()` + show success `SnackBar` when no error occurred.
     - Render current avatar (`profile.avatarUrl`) in the header `CircleAvatar` and make the camera button interactive (allowing the user to enter/update their avatar URL).
     - Sync text controllers when `profileControllerProvider` finishes initial load.
-  - [ ] In `lib/src/features/profile/presentation/profile_screen.dart`:
+  - [x] In `lib/src/features/profile/presentation/profile_screen.dart`:
     - Add a Role Switcher card/tile showing current role (`Customer` vs `Mechanic / Service Provider`) and allowing role switching via `profileControllerProvider.notifier.updateRole(...)`.
     - Fix `_showLogoutDialog` to `await ref.read(profileControllerProvider.notifier).logout()` and remove manual `context.go('/login')`.
     - Replace all 10 deprecated `.withOpacity(...)` calls with `.withValues(alpha: ...)`.
-  - [ ] In `lib/src/features/mechanic/presentation/mechanic_home_screen.dart` and `lib/src/features/auth/presentation/role_selection_screen.dart`:
+  - [x] In `lib/src/features/mechanic/presentation/mechanic_home_screen.dart` and `lib/src/features/auth/presentation/role_selection_screen.dart`:
     - Replace deprecated `.withOpacity(...)` in `MechanicHomeScreen` and add an AppBar profile/switch-to-customer action so Mechanics can navigate to `/profile/edit` or switch back to `Customer` role.
     - Connect `RoleSelectionScreen` cards to persist role changes when an authenticated user selects a role.
-  - [ ] In `lib/src/routing/app_router.dart`:
+  - [x] In `lib/src/routing/app_router.dart`:
     - Register `ref.onDispose` to dispose both `GoRouterRefreshStream` and `GoRouter`.
     - Enforce cross-role route isolation in `redirect`: redirect non-mechanics away from `/mechanic/*` to `/home`, and redirect mechanics from `/home` to `/mechanic/home` (while allowing shared routes like `/profile/edit`).
-  - [ ] In `lib/main.dart`:
+  - [x] In `lib/main.dart`:
     - Watch `profileControllerProvider` in `AutoEaseApp` and bind `themeMode` to `profile.darkModeEnabled ? ThemeMode.dark : ThemeMode.light` (defaulting to `ThemeMode.system` when unauthenticated).
 
-- [ ] Task 6: Three-Tier Tests — Unit, Widget, and BDD Feature (AC: 1, 2, 3, 4)
-  - [ ] Create shared `FakeAuthRepository` and `FakeProfileRepository` in `test/helpers/` (with RLS `PostgrestException(code: '42501')` simulation when `uid != currentUser?.uid`) and remove duplicated inline fakes where applicable.
-  - [ ] Update `test/unit/models/user_profile_model_test.dart` to test `role` serialization/deserialization, `copyWith(role: ...)`, and value equality (`==` / `hashCode`).
-  - [ ] Rewrite `test/unit/profile/profile_controller_test.dart` and add `test/unit/profile/profile_repository_test.dart` to test stream emission, `updateProfile`, `updateRole` (verifying both `profiles.role` and auth metadata sync), `toggleNotifications`, `toggleDarkMode`, `logout`, and RLS `42501` unauthorized update rejection.
-  - [ ] Add `test/widget/profile_screen_test.dart` (covering `ProfileScreen` & `EditProfileScreen` form validation, async save awaiting, error `SnackBar` on failure without popping, role switch, and dark mode toggle).
-  - [ ] Add `test/features/profile/profile_editing.feature` (1–2 Gherkin scenarios verifying end-to-end profile editing and role switching redirect via `bdd_widget_test`).
+- [x] Task 6: Three-Tier Tests — Unit, Widget, and BDD Feature (AC: 1, 2, 3, 4)
+  - [x] Create shared `FakeAuthRepository` and `FakeProfileRepository` in `test/helpers/` (with RLS `PostgrestException(code: '42501')` simulation when `uid != currentUser?.uid`) and remove duplicated inline fakes where applicable.
+  - [x] Update `test/unit/models/user_profile_model_test.dart` to test `role` serialization/deserialization, `copyWith(role: ...)`, and value equality (`==` / `hashCode`).
+  - [x] Rewrite `test/unit/profile/profile_controller_test.dart` and add `test/unit/profile/profile_repository_test.dart` to test stream emission, `updateProfile`, `updateRole` (verifying both `profiles.role` and auth metadata sync), `toggleNotifications`, `toggleDarkMode`, `logout`, and RLS `42501` unauthorized update rejection.
+  - [x] Add `test/widget/profile_screen_test.dart` (covering `ProfileScreen` & `EditProfileScreen` form validation, async save awaiting, error `SnackBar` on failure without popping, role switch, and dark mode toggle).
+  - [x] Add `test/features/profile/profile_editing.feature` (1–2 Gherkin scenarios verifying end-to-end profile editing and role switching redirect via `bdd_widget_test`).
 
 ## Dev Notes
 
@@ -176,6 +183,31 @@ so that my profile remains up to date while enforcing strict data isolation so o
 - [Source: `_bmad-output/implementation-artifacts/1-1-user-onboarding-multi-role-registration-supabase-auth-integration.md` — Story 1.1 Learnings]
 - [Source: `docs/lessons_learned.md` — Riverpod Codegen & Deprecated API Guidelines]
 
+## Review Triage Log
+
+| # | Reviewer | Location | Claim | Verdict | Route | Evidence |
+|---|---|---|---|---|---|---|
+| 1 | edge-case-hunter | `lib/src/features/profile/presentation/edit_profile_screen.dart:76-80` | Clearing an existing avatar URL to empty sets `_avatarUrl` to `null`, falling back to `profile.avatarUrl` and skipping DB update | `low` | `reject` | AC 1 specifies entering/updating an avatar URL; clearing via nullable sentinel would require changing `UserProfile.copyWith` and `ProfileRepository.updateProfile` signatures across the data layer. |
+| 2 | edge-case-hunter | `lib/src/features/auth/presentation/role_selection_screen.dart:13-26` | `updateRole` failure on `RoleSelectionScreen` still executes `context.go(...)` without checking `.hasError` or showing an error snackbar | `medium` | `patch` | `_selectRole` calls `await ref.read(profileControllerProvider.notifier).updateRole(role)` and then unconditionally calls `context.go(...)` without checking `ref.read(profileControllerProvider).hasError` or registering `showAlertDialogOnError`. |
+| 3 | edge-case-hunter | `lib/src/features/profile/application/profile_controller.dart:22-26` | Both branches of `authAsync.isLoading ? authRepository.currentUser : authRepository.currentUser` evaluate to `authRepository.currentUser` instead of `null` | `low` | `patch` | Line 24-26 has `authAsync.isLoading ? authRepository.currentUser : authRepository.currentUser` instead of `: null`, differing from the cold-start fallback pattern in lines 15-17. |
+| 4 | edge-case-hunter | `supabase/migrations/20261108000001_profiles_rls_and_auth_trigger.sql:22` | `ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS role` omits `CHECK (role IN ('customer', 'mechanic'))` | `low` | `patch` | Line 10 has the `CHECK` constraint in `CREATE TABLE IF NOT EXISTS`, but line 22 `ALTER TABLE ... ADD COLUMN IF NOT EXISTS role` omits `CHECK (role IN ('customer', 'mechanic'))`. |
+| 5 | blind-hunter | `lib/src/features/profile/presentation/edit_profile_screen.dart:44-78` | `EditProfileScreen` cannot clear existing avatar URL and disposes `urlController` immediately after `showDialog` | `low` | `reject` | Same root cause as #1; in tests and normal dialog pop, `showDialog` completes after dialog route pop and no controller disposal error occurs in widget tests. |
+| 6 | blind-hunter | `lib/src/features/profile/application/profile_controller.dart:22-26` | Redundant ternary branch in `ProfileController.build` evaluates `authRepository.currentUser` in both branches | `low` | `patch` | Same root cause as #3 (`authAsync.isLoading ? authRepository.currentUser : null`). |
+| 7 | blind-hunter | `lib/src/features/profile/application/profile_controller.dart:57-71, 104-112` | `ProfileController.updateProfile` and `updateRole` update `public.profiles` and `auth.users` metadata sequentially without distributed transaction rollback | `low` | `reject` | Supabase PostgREST (`public.profiles`) and GoTrue (`auth.users` metadata) are separate HTTP services without distributed client transactions; retrying via the UI re-syncs both idempotently. |
+| 8 | blind-hunter | `lib/src/features/auth/presentation/role_selection_screen.dart:13-26` | `RoleSelectionScreen._selectRole` navigates even when `updateRole` fails and lacks error listener | `medium` | `patch` | Same root cause as #2; adding `ref.listen` with `showAlertDialogOnError` and `if (ref.read(profileControllerProvider).hasError) return;` fixes it cleanly. |
+| 9 | blind-hunter | `lib/src/features/mechanic/presentation/mechanic_home_screen.dart:29-44` | `MechanicHomeScreen` has no `ref.listen` error listener for `profileControllerProvider` when switching roles | `medium` | `patch` | `MechanicHomeScreen.build` invokes `ref.read(profileControllerProvider.notifier).updateRole(AppUserRole.customer)` on line 40 but does not register `ref.listen<AsyncValue<UserProfile>>(profileControllerProvider, (_, state) => state.showAlertDialogOnError(context))`. |
+| 10 | blind-hunter | `supabase/migrations/20261108000001_profiles_rls_and_auth_trigger.sql:22` | `ALTER TABLE ... ADD COLUMN IF NOT EXISTS role` omits `CHECK (role IN ('customer', 'mechanic'))` | `low` | `patch` | Same root cause as #4. |
+| 11 | blind-hunter | `supabase/migrations/20261108000001_profiles_rls_and_auth_trigger.sql` | No `BEFORE UPDATE` Postgres trigger for `updated_at` | `low` | `reject` | `ProfileRepository.updateProfile` explicitly writes `'updated_at': DateTime.now().toUtc().toIso8601String()` on every profile update and `handle_new_user()` sets `updated_at = now()`. |
+| 12 | blind-hunter | `test/unit/profile/profile_repository_test.dart` | `ProfileRepository.watchProfile` has no unit tests in `profile_repository_test.dart` | `medium` | `patch` | Confirmed: `test/unit/profile/profile_repository_test.dart` only tests `updateProfile` and does not test `watchProfile`. |
+| 13 | blind-hunter | `lib/src/features/profile/presentation/profile_screen.dart:24-34` | `ProfileScreen` retains `currentProfile` across `AsyncLoading`/`AsyncError` without disabling role/settings controls while loading | `false` | `reject` | Retaining `valueOrNull` when `hasValue` is true and surfacing errors via non-blocking `SnackBar` (`showAlertDialogOnError`) is explicitly required by `project-context.md` (Offline Resilience `NFR3`). |
+| 14 | blind-hunter | `lib/src/features/profile/presentation/edit_profile_screen.dart:44-78` | `EditProfileScreen` does not validate HTTP/HTTPS scheme on Avatar URL dialog input | `low` | `reject` | Unlikely in normal use and not part of AC 1's required form validation rules (`'Please enter your name'`, `'Please enter your phone number'`). |
+| 15 | verification-gap | `test/unit/profile/profile_repository_test.dart:141-205` | `ProfileRepository.watchProfile` stream mapping and empty-row fallback are untested | `medium` | `patch` | Same root cause as #12; pre-verified gap in `test/unit/profile/profile_repository_test.dart`. |
+| 16 | verification-gap | `lib/src/features/mechanic/presentation/mechanic_home_screen.dart:29-56` | `MechanicHomeScreen` AppBar role-switch and edit-profile actions have no widget test verification | `medium` | `patch` | Pre-verified gap: no widget test exercises `'Switch to Customer'` or `'Edit Profile'` on `MechanicHomeScreen`. |
+| 17 | verification-gap | `lib/src/features/auth/presentation/role_selection_screen.dart:13-26` | `RoleSelectionScreen` role persistence for authenticated users has no widget test verification | `medium` | `patch` | Pre-verified gap: no widget test exercises `RoleSelectionScreen` card tap for an authenticated user. |
+| 18 | verification-gap | `lib/src/features/profile/presentation/edit_profile_screen.dart:73-77` | Clearing avatar URL in dialog sets `_avatarUrl = null` | `low` | `reject` | Same as #1 and #5. |
+| 19 | verification-gap | `lib/src/features/profile/application/profile_controller.dart:23-26` | Identical ternary branches in `ProfileController.build` (`authAsync.isLoading ? authRepository.currentUser : authRepository.currentUser`) | `low` | `patch` | Same root cause as #3 and #6. |
+| 20 | verification-gap | `lib/src/routing/app_router.dart:68-87` | `/role-selection` is included in `isAuthRoute` in `app_router.dart`, redirecting logged-in users before `RoleSelectionScreen` can be used | `low` | `reject` | `project-context.md` explicitly specifies that `/role-selection` is one of the public/auth routes in `goRouterProvider` (`Unauthenticated users are restricted to public/auth routes (/, /onboarding, /login, /register, /forgot-password, /role-selection)`), while `RoleSelectionScreen` can still be mounted directly or used during onboarding/auth flows. |
+
 ## Dev Agent Record
 
 ### Agent Model Used
@@ -187,8 +219,43 @@ Gemini 4 Argon (Medium)
 ### Completion Notes List
 
 - Ultimate context engine analysis completed - comprehensive developer guide created.
+- Implemented `supabase/migrations/20261108000001_profiles_rls_and_auth_trigger.sql` with idempotent `public.profiles` DDL, `public.handle_new_user()` trigger (`SECURITY DEFINER SET search_path = public`), and `profiles_select_authenticated`, `profiles_insert_own`, and `profiles_update_own` RLS policies.
+- Extended `UserProfile` with `AppUserRole role`, dual `name`/`full_name` JSON serialization, `copyWith(role: ...)`, `operator ==`, `hashCode`, and `toString()`.
+- Created `ProfileRepository` (`profile_repository.dart` + `profile_repository.g.dart`) enforcing the repository boundary and chaining `.update(updates).eq('id', uid).select().single()` to detect 0-row RLS rejections.
+- Updated `AuthRepository` with `.distinct()` on `authStateChanges()` and `updateUserMetadata({name, role, avatarUrl})`.
+- Refactored `ProfileController` to watch `authStateChangesProvider` with cold-start fallback, delegate mutations to `ProfileRepository` and `AuthRepository`, and capture errors via `AsyncValue.guard`.
+- Updated `EditProfileScreen`, `ProfileScreen`, `MechanicHomeScreen`, `RoleSelectionScreen`, `app_router.dart`, and `main.dart` for async mutation awaiting, avatar URL editing, role switching, cross-role route isolation, reactive dark mode theme binding, clean logout, and `.withValues(alpha: ...)` migration.
+- Added comprehensive 3-tier tests (`user_profile_model_test.dart`, `profile_repository_test.dart`, `profile_controller_test.dart`, `profile_screen_test.dart`, and `profile_editing.feature` + generated BDD test/steps) alongside shared `FakeAuthRepository` and `FakeProfileRepository`.
 
 ### File List
 
 - `_bmad-output/implementation-artifacts/1-2-user-profile-editing-role-based-supabase-rls-security-policy.md`
 - `_bmad-output/implementation-artifacts/sprint-status.yaml`
+- `supabase/migrations/20261108000001_profiles_rls_and_auth_trigger.sql`
+- `lib/main.dart`
+- `lib/src/features/auth/data/auth_repository.dart`
+- `lib/src/features/auth/presentation/role_selection_screen.dart`
+- `lib/src/features/mechanic/presentation/mechanic_home_screen.dart`
+- `lib/src/features/profile/application/profile_controller.dart`
+- `lib/src/features/profile/data/profile_repository.dart`
+- `lib/src/features/profile/data/profile_repository.g.dart`
+- `lib/src/features/profile/domain/user_profile.dart`
+- `lib/src/features/profile/presentation/edit_profile_screen.dart`
+- `lib/src/features/profile/presentation/profile_screen.dart`
+- `lib/src/routing/app_router.dart`
+- `test/helpers/fake_auth_repository.dart`
+- `test/helpers/fake_profile_repository.dart`
+- `test/unit/auth/auth_repository_test.dart`
+- `test/unit/models/user_profile_model_test.dart`
+- `test/unit/profile/profile_controller_test.dart`
+- `test/unit/profile/profile_repository_test.dart`
+- `test/widget/profile_screen_test.dart`
+- `test/features/profile/profile_editing.feature`
+- `test/features/profile/profile_editing_test.dart`
+- `test/features/profile/step/i_am_logged_in_as_a_customer_on_the_profile_screen.dart`
+- `test/features/profile/step/i_should_be_redirected_to_the_mechanic_dashboard.dart`
+- `test/features/profile/step/i_should_return_to_the_profile_screen_showing_and.dart`
+- `test/features/profile/step/i_switch_my_active_role_to.dart`
+- `test/features/profile/step/i_tap_the_edit_profile_button.dart`
+- `test/features/profile/step/i_tap_the_save_changes_button.dart`
+- `test/features/profile/step/i_update_my_full_name_to_and_phone_to.dart`

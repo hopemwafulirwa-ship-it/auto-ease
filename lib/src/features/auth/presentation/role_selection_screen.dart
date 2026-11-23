@@ -1,13 +1,40 @@
 import 'package:flutter/material.dart';
-import 'package:auto_ease/src/common/widgets/gradient_background.dart';
-import 'package:auto_ease/src/common/widgets/glass_card.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:auto_ease/src/common/utils/async_value_ui.dart';
+import 'package:auto_ease/src/common/widgets/glass_card.dart';
+import 'package:auto_ease/src/common/widgets/gradient_background.dart';
+import 'package:auto_ease/src/features/auth/data/auth_repository.dart';
+import 'package:auto_ease/src/features/auth/domain/app_user.dart';
+import 'package:auto_ease/src/features/profile/application/profile_controller.dart';
+import 'package:auto_ease/src/features/profile/domain/user_profile.dart';
 
-class RoleSelectionScreen extends StatelessWidget {
+class RoleSelectionScreen extends ConsumerWidget {
   const RoleSelectionScreen({super.key});
 
+  Future<void> _selectRole(
+    BuildContext context,
+    WidgetRef ref,
+    AppUserRole role,
+  ) async {
+    final currentUser = ref.read(authRepositoryProvider).currentUser;
+    if (currentUser != null) {
+      await ref.read(profileControllerProvider.notifier).updateRole(role);
+      if (!context.mounted) return;
+      if (ref.read(profileControllerProvider).hasError) return;
+    }
+    if (context.mounted) {
+      context.go(role == AppUserRole.mechanic ? '/mechanic/home' : '/home');
+    }
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    ref.listen<AsyncValue<UserProfile>>(
+      profileControllerProvider,
+      (_, state) => state.showAlertDialogOnError(context),
+    );
+
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -23,12 +50,11 @@ class RoleSelectionScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(24),
                 child: ConstrainedBox(
                   constraints: BoxConstraints(
-                    minHeight: constraints.maxHeight - 48, // Subtract padding
+                    minHeight: constraints.maxHeight - 48,
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // Header
                       Icon(
                         Icons.car_repair,
                         size: 80,
@@ -52,29 +78,45 @@ class RoleSelectionScreen extends StatelessWidget {
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 48),
-
-                      // Role Cards
                       if (isWide)
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Expanded(
                               child: _buildCustomerCard(
-                                  context, colorScheme, theme),
+                                context,
+                                ref,
+                                colorScheme,
+                                theme,
+                              ),
                             ),
                             const SizedBox(width: 24),
                             Expanded(
                               child: _buildMechanicCard(
-                                  context, colorScheme, theme),
+                                context,
+                                ref,
+                                colorScheme,
+                                theme,
+                              ),
                             ),
                           ],
                         )
                       else
                         Column(
                           children: [
-                            _buildCustomerCard(context, colorScheme, theme),
+                            _buildCustomerCard(
+                              context,
+                              ref,
+                              colorScheme,
+                              theme,
+                            ),
                             const SizedBox(height: 20),
-                            _buildMechanicCard(context, colorScheme, theme),
+                            _buildMechanicCard(
+                              context,
+                              ref,
+                              colorScheme,
+                              theme,
+                            ),
                           ],
                         ),
                     ],
@@ -89,11 +131,15 @@ class RoleSelectionScreen extends StatelessWidget {
   }
 
   Widget _buildCustomerCard(
-      BuildContext context, ColorScheme colorScheme, ThemeData theme) {
+    BuildContext context,
+    WidgetRef ref,
+    ColorScheme colorScheme,
+    ThemeData theme,
+  ) {
     return AspectRatio(
-      aspectRatio: 1.2, // Enforce consistent shape
+      aspectRatio: 1.2,
       child: GlassCard(
-        onTap: () => context.go('/home'),
+        onTap: () => _selectRole(context, ref, AppUserRole.customer),
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -132,11 +178,15 @@ class RoleSelectionScreen extends StatelessWidget {
   }
 
   Widget _buildMechanicCard(
-      BuildContext context, ColorScheme colorScheme, ThemeData theme) {
+    BuildContext context,
+    WidgetRef ref,
+    ColorScheme colorScheme,
+    ThemeData theme,
+  ) {
     return AspectRatio(
-      aspectRatio: 1.2, // Enforce consistent shape
+      aspectRatio: 1.2,
       child: GlassCard(
-        onTap: () => context.go('/mechanic/home'),
+        onTap: () => _selectRole(context, ref, AppUserRole.mechanic),
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

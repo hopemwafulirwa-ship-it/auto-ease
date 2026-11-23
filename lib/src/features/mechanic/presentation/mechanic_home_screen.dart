@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:auto_ease/src/common/utils/async_value_ui.dart';
 import 'package:auto_ease/src/common/widgets/gradient_background.dart';
 import 'package:auto_ease/src/common/widgets/glass_card.dart';
 import 'package:auto_ease/src/features/mechanic/data/mechanic_repository.dart';
 import 'package:auto_ease/src/features/mechanic/domain/job_request.dart';
 import 'package:auto_ease/src/features/auth/data/auth_repository.dart';
+import 'package:auto_ease/src/features/auth/domain/app_user.dart';
+import 'package:auto_ease/src/features/profile/application/profile_controller.dart';
+import 'package:auto_ease/src/features/profile/domain/user_profile.dart';
 import 'package:go_router/go_router.dart';
 
 class MechanicHomeScreen extends ConsumerWidget {
@@ -12,6 +16,11 @@ class MechanicHomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.listen<AsyncValue<UserProfile>>(
+      profileControllerProvider,
+      (_, state) => state.showAlertDialogOnError(context),
+    );
+
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final currentUser = ref.watch(authRepositoryProvider).currentUser;
@@ -25,10 +34,38 @@ class MechanicHomeScreen extends ConsumerWidget {
         elevation: 0,
         actions: [
           IconButton(
+            tooltip: 'Switch to Customer',
             icon: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: colorScheme.surface.withOpacity(0.2),
+                color: colorScheme.surface.withValues(alpha: 0.2),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.swap_horiz, size: 20),
+            ),
+            onPressed: () {
+              ref
+                  .read(profileControllerProvider.notifier)
+                  .updateRole(AppUserRole.customer);
+            },
+          ),
+          IconButton(
+            tooltip: 'Edit Profile',
+            icon: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: colorScheme.surface.withValues(alpha: 0.2),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.person_outline, size: 20),
+            ),
+            onPressed: () => context.push('/profile/edit'),
+          ),
+          IconButton(
+            icon: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: colorScheme.surface.withValues(alpha: 0.2),
                 shape: BoxShape.circle,
               ),
               child: const Icon(Icons.notifications_outlined, size: 20),

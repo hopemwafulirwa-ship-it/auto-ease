@@ -1,262 +1,47 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:auto_ease/src/features/profile/application/profile_controller.dart';
-import 'package:auto_ease/src/common/widgets/gradient_background.dart';
+import 'package:auto_ease/src/common/utils/async_value_ui.dart';
 import 'package:auto_ease/src/common/widgets/glass_card.dart';
+import 'package:auto_ease/src/common/widgets/gradient_background.dart';
+import 'package:auto_ease/src/features/auth/domain/app_user.dart';
+import 'package:auto_ease/src/features/profile/application/profile_controller.dart';
+import 'package:auto_ease/src/features/profile/domain/user_profile.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.listen<AsyncValue<UserProfile>>(
+      profileControllerProvider,
+      (_, state) => state.showAlertDialogOnError(context),
+    );
+
     final profileValue = ref.watch(profileControllerProvider);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final currentProfile = profileValue.valueOrNull;
+
+    if (currentProfile != null) {
+      return _buildProfileScaffold(
+        context,
+        ref,
+        currentProfile,
+        theme,
+        colorScheme,
+      );
+    }
 
     return profileValue.when(
-      data: (profile) => Scaffold(
-        extendBodyBehindAppBar: true,
-        appBar: AppBar(
-          title: const Text('Profile'),
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          actions: [
-            IconButton(
-              icon: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: colorScheme.surface.withOpacity(0.2),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.edit, size: 20),
-              ),
-              onPressed: () {
-                context.push('/profile/edit');
-              },
-            ),
-            const SizedBox(width: 8),
-          ],
-        ),
-        body: GradientBackground.subtle(
-          colorScheme: colorScheme,
-          child: SafeArea(
-            child: ListView(
-              padding: const EdgeInsets.all(24),
-              children: [
-                // User Avatar and Name
-                Center(
-                  child: Column(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: colorScheme.primary.withOpacity(0.5),
-                            width: 2,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: colorScheme.primary.withOpacity(0.2),
-                              blurRadius: 20,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: CircleAvatar(
-                          radius: 50,
-                          backgroundColor: colorScheme.primaryContainer,
-                          backgroundImage: profile.avatarUrl != null 
-                              ? NetworkImage(profile.avatarUrl!) 
-                              : null,
-                          child: profile.avatarUrl == null
-                              ? Text(
-                                  profile.email.isNotEmpty
-                                      ? profile.email[0].toUpperCase()
-                                      : '?',
-                                  style: theme.textTheme.headlineLarge?.copyWith(
-                                    color: colorScheme.onPrimaryContainer,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                )
-                              : null,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        profile.name.isNotEmpty ? profile.name : 'Unknown User',
-                        style: theme.textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.onSurface,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        profile.email,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              const SizedBox(height: 32),
-
-              // Personal Information Section
-              _buildSectionHeader(context, 'Personal Information'),
-              const SizedBox(height: 12),
-              GlassCard(
-                padding: EdgeInsets.zero,
-                child: Column(
-                  children: [
-                    _buildListTile(
-                      context,
-                      icon: Icons.email_outlined,
-                      title: 'Email',
-                      subtitle: profile.email,
-                    ),
-                    Divider(
-                      height: 1,
-                      indent: 56,
-                      color: colorScheme.outline.withOpacity(0.1),
-                    ),
-                    _buildListTile(
-                      context,
-                      icon: Icons.phone_outlined,
-                      title: 'Phone',
-                      subtitle: profile.phone,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Settings Section
-              _buildSectionHeader(context, 'Settings'),
-              const SizedBox(height: 12),
-              GlassCard(
-                padding: EdgeInsets.zero,
-                child: Column(
-                  children: [
-                    SwitchListTile(
-                      secondary: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: colorScheme.primaryContainer
-                              .withOpacity(0.5),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Icon(
-                          Icons.notifications_outlined,
-                          color: colorScheme.primary,
-                          size: 20,
-                        ),
-                      ),
-                      title: const Text('Notifications'),
-                      subtitle: const Text('Receive booking reminders'),
-                      value: profile.notificationsEnabled,
-                      onChanged: (value) {
-                        ref
-                            .read(profileControllerProvider.notifier)
-                            .toggleNotifications(value);
-                      },
-                    ),
-                    Divider(
-                      height: 1,
-                      indent: 56,
-                      color: colorScheme.outline.withOpacity(0.1),
-                    ),
-                    SwitchListTile(
-                      secondary: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: colorScheme.primaryContainer
-                              .withOpacity(0.5),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Icon(
-                          Icons.dark_mode_outlined,
-                          color: colorScheme.primary,
-                          size: 20,
-                        ),
-                      ),
-                      title: const Text('Dark Mode'),
-                      subtitle: const Text('Enable dark theme'),
-                      value: profile.darkModeEnabled,
-                      onChanged: (value) {
-                        ref
-                            .read(profileControllerProvider.notifier)
-                            .toggleDarkMode(value);
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // About Section
-              _buildSectionHeader(context, 'About'),
-              const SizedBox(height: 12),
-              GlassCard(
-                padding: EdgeInsets.zero,
-                child: Column(
-                  children: [
-                    _buildListTile(
-                      context,
-                      icon: Icons.info_outlined,
-                      title: 'App Version',
-                      subtitle: '1.0.0',
-                    ),
-                    Divider(
-                      height: 1,
-                      indent: 56,
-                      color: colorScheme.outline.withOpacity(0.1),
-                    ),
-                    _buildListTile(
-                      context,
-                      icon: Icons.policy_outlined,
-                      title: 'Privacy Policy',
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () {},
-                    ),
-                    Divider(
-                      height: 1,
-                      indent: 56,
-                      color: colorScheme.outline.withOpacity(0.1),
-                    ),
-                    _buildListTile(
-                      context,
-                      icon: Icons.description_outlined,
-                      title: 'Terms of Service',
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () {},
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 32),
-
-              // Logout Button
-              FilledButton.icon(
-                onPressed: () {
-                  _showLogoutDialog(context, ref);
-                },
-                icon: const Icon(Icons.logout),
-                label: const Text('Logout'),
-                style: FilledButton.styleFrom(
-                  backgroundColor: colorScheme.error,
-                  foregroundColor: colorScheme.onError,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-              ),
-              const SizedBox(height: 16),
-            ],
-          ),
-        ),
+      data: (profile) => _buildProfileScaffold(
+        context,
+        ref,
+        profile,
+        theme,
+        colorScheme,
       ),
-    ),
-    loading: () => Scaffold(
+      loading: () => Scaffold(
         body: GradientBackground.subtle(
           colorScheme: colorScheme,
           child: const Center(child: CircularProgressIndicator()),
@@ -297,6 +82,336 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
+  Widget _buildProfileScaffold(
+    BuildContext context,
+    WidgetRef ref,
+    UserProfile profile,
+    ThemeData theme,
+    ColorScheme colorScheme,
+  ) {
+    return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        title: const Text('Profile'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: colorScheme.surface.withValues(alpha: 0.2),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.edit, size: 20),
+            ),
+            onPressed: () {
+              context.push('/profile/edit');
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
+      body: GradientBackground.subtle(
+        colorScheme: colorScheme,
+        child: SafeArea(
+          child: ListView(
+            padding: const EdgeInsets.all(24),
+            children: [
+              // User Avatar and Name
+              Center(
+                child: Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: colorScheme.primary.withValues(alpha: 0.5),
+                          width: 2,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: colorScheme.primary.withValues(alpha: 0.2),
+                            blurRadius: 20,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: CircleAvatar(
+                        radius: 50,
+                        backgroundColor: colorScheme.primaryContainer,
+                        backgroundImage: (profile.avatarUrl != null &&
+                                profile.avatarUrl!.isNotEmpty)
+                            ? NetworkImage(profile.avatarUrl!)
+                            : null,
+                        child: (profile.avatarUrl == null ||
+                                profile.avatarUrl!.isEmpty)
+                            ? Text(
+                                profile.email.isNotEmpty
+                                    ? profile.email[0].toUpperCase()
+                                    : '?',
+                                style: theme.textTheme.headlineLarge?.copyWith(
+                                  color: colorScheme.onPrimaryContainer,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              )
+                            : null,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      profile.name.isNotEmpty ? profile.name : 'Unknown User',
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      profile.email,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 32),
+
+              // Personal Information Section
+              _buildSectionHeader(context, 'Personal Information'),
+              const SizedBox(height: 12),
+              GlassCard(
+                padding: EdgeInsets.zero,
+                child: Column(
+                  children: [
+                    _buildListTile(
+                      context,
+                      icon: Icons.email_outlined,
+                      title: 'Email',
+                      subtitle: profile.email,
+                    ),
+                    Divider(
+                      height: 1,
+                      indent: 56,
+                      color: colorScheme.outline.withValues(alpha: 0.1),
+                    ),
+                    _buildListTile(
+                      context,
+                      icon: Icons.phone_outlined,
+                      title: 'Phone',
+                      subtitle: profile.phone,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Account Role Section
+              _buildSectionHeader(context, 'Account Role'),
+              const SizedBox(height: 12),
+              GlassCard(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: colorScheme.primaryContainer
+                                .withValues(alpha: 0.5),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(
+                            profile.role == AppUserRole.mechanic
+                                ? Icons.build_circle_outlined
+                                : Icons.person_outline,
+                            color: colorScheme.primary,
+                            size: 20,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Active Role',
+                                style: theme.textTheme.bodyLarge?.copyWith(
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              Text(
+                                profile.role == AppUserRole.mechanic
+                                    ? 'Mechanic / Service Provider'
+                                    : 'Customer',
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    SegmentedButton<AppUserRole>(
+                      segments: const [
+                        ButtonSegment<AppUserRole>(
+                          value: AppUserRole.customer,
+                          label: Text('Customer'),
+                          icon: Icon(Icons.person_outline),
+                        ),
+                        ButtonSegment<AppUserRole>(
+                          value: AppUserRole.mechanic,
+                          label: Text('Mechanic'),
+                          icon: Icon(Icons.build_circle_outlined),
+                        ),
+                      ],
+                      selected: {profile.role},
+                      onSelectionChanged: (newSelection) {
+                        final selectedRole = newSelection.first;
+                        if (selectedRole != profile.role) {
+                          ref
+                              .read(profileControllerProvider.notifier)
+                              .updateRole(selectedRole);
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Settings Section
+              _buildSectionHeader(context, 'Settings'),
+              const SizedBox(height: 12),
+              GlassCard(
+                padding: EdgeInsets.zero,
+                child: Column(
+                  children: [
+                    SwitchListTile(
+                      secondary: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: colorScheme.primaryContainer
+                              .withValues(alpha: 0.5),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          Icons.notifications_outlined,
+                          color: colorScheme.primary,
+                          size: 20,
+                        ),
+                      ),
+                      title: const Text('Notifications'),
+                      subtitle: const Text('Receive booking reminders'),
+                      value: profile.notificationsEnabled,
+                      onChanged: (value) {
+                        ref
+                            .read(profileControllerProvider.notifier)
+                            .toggleNotifications(value);
+                      },
+                    ),
+                    Divider(
+                      height: 1,
+                      indent: 56,
+                      color: colorScheme.outline.withValues(alpha: 0.1),
+                    ),
+                    SwitchListTile(
+                      secondary: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: colorScheme.primaryContainer
+                              .withValues(alpha: 0.5),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          Icons.dark_mode_outlined,
+                          color: colorScheme.primary,
+                          size: 20,
+                        ),
+                      ),
+                      title: const Text('Dark Mode'),
+                      subtitle: const Text('Enable dark theme'),
+                      value: profile.darkModeEnabled,
+                      onChanged: (value) {
+                        ref
+                            .read(profileControllerProvider.notifier)
+                            .toggleDarkMode(value);
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // About Section
+              _buildSectionHeader(context, 'About'),
+              const SizedBox(height: 12),
+              GlassCard(
+                padding: EdgeInsets.zero,
+                child: Column(
+                  children: [
+                    _buildListTile(
+                      context,
+                      icon: Icons.info_outlined,
+                      title: 'App Version',
+                      subtitle: '1.0.0',
+                    ),
+                    Divider(
+                      height: 1,
+                      indent: 56,
+                      color: colorScheme.outline.withValues(alpha: 0.1),
+                    ),
+                    _buildListTile(
+                      context,
+                      icon: Icons.policy_outlined,
+                      title: 'Privacy Policy',
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () {},
+                    ),
+                    Divider(
+                      height: 1,
+                      indent: 56,
+                      color: colorScheme.outline.withValues(alpha: 0.1),
+                    ),
+                    _buildListTile(
+                      context,
+                      icon: Icons.description_outlined,
+                      title: 'Terms of Service',
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () {},
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 32),
+
+              // Logout Button
+              FilledButton.icon(
+                onPressed: () {
+                  _showLogoutDialog(context, ref);
+                },
+                icon: const Icon(Icons.logout),
+                label: const Text('Logout'),
+                style: FilledButton.styleFrom(
+                  backgroundColor: colorScheme.error,
+                  foregroundColor: colorScheme.onError,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildSectionHeader(BuildContext context, String title) {
     return Text(
       title,
@@ -322,7 +437,7 @@ class ProfileScreen extends ConsumerWidget {
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: colorScheme.primaryContainer.withOpacity(0.5),
+          color: colorScheme.primaryContainer.withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Icon(
@@ -353,19 +468,18 @@ class ProfileScreen extends ConsumerWidget {
   void _showLogoutDialog(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Logout'),
         content: const Text('Are you sure you want to logout?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Cancel'),
           ),
           FilledButton(
-            onPressed: () {
-              ref.read(profileControllerProvider.notifier).logout();
-              Navigator.pop(context);
-              context.go('/login');
+            onPressed: () async {
+              Navigator.pop(dialogContext);
+              await ref.read(profileControllerProvider.notifier).logout();
             },
             child: const Text('Logout'),
           ),

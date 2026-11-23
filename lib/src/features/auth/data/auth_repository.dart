@@ -176,6 +176,33 @@ class AuthRepository {
     }
   }
 
+  Future<void> updateUserMetadata({
+    String? name,
+    AppUserRole? role,
+    String? avatarUrl,
+  }) async {
+    try {
+      final client = await _requireClient();
+      await client.auth.updateUser(
+        UserAttributes(
+          data: {
+            if (name != null) 'name': name,
+            if (name != null) 'full_name': name,
+            if (role != null) 'role': role.name,
+            if (avatarUrl != null) 'avatar_url': avatarUrl,
+          },
+        ),
+      );
+    } on AuthException catch (e) {
+      throw _handleAuthException(e);
+    } catch (e) {
+      if (_isNetworkError(e)) {
+        throw Exception(kNetworkErrorMessage);
+      }
+      throw Exception('Failed to update user metadata');
+    }
+  }
+
   Future<void> signOut() async {
     try {
       final client = await _requireClient();

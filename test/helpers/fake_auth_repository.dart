@@ -14,6 +14,9 @@ class FakeAuthRepository implements AuthRepository {
   String? lastSignUpPassword;
   String? lastSignUpName;
   AppUserRole? lastSignUpRole;
+  String? lastUpdatedName;
+  AppUserRole? lastUpdatedRole;
+  String? lastUpdatedAvatarUrl;
   bool signOutCalled = false;
 
   FakeAuthRepository({AppUser? initialUser}) : _currentUser = initialUser;
@@ -79,6 +82,31 @@ class FakeAuthRepository implements AuthRepository {
   Future<AppUser?> fetchUserProfile(String id) async => _currentUser;
 
   @override
+  Future<void> updateUserMetadata({
+    String? name,
+    AppUserRole? role,
+    String? avatarUrl,
+  }) async {
+    if (shouldFail) {
+      throw Exception(failureMessage);
+    }
+    lastUpdatedName = name ?? lastUpdatedName;
+    lastUpdatedRole = role ?? lastUpdatedRole;
+    lastUpdatedAvatarUrl = avatarUrl ?? lastUpdatedAvatarUrl;
+
+    final current = _currentUser;
+    if (current != null) {
+      _currentUser = current.copyWith(
+        name: name ?? current.name,
+        role: role ?? current.role,
+      );
+      if (!_authStateController.isClosed) {
+        _authStateController.add(_currentUser);
+      }
+    }
+  }
+
+  @override
   Future<void> signOut() async {
     if (shouldFail) {
       throw Exception(failureMessage);
@@ -96,4 +124,3 @@ class FakeAuthRepository implements AuthRepository {
     }
   }
 }
-
